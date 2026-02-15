@@ -11,75 +11,79 @@
 
   <!-- ── TOPBAR ── -->
   <header class="topbar">
-    <div class="topbar-left">
-      <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Enter Fullscreen">
+    <div class="topbar-row-1">
+      <div class="logo">Task<span>Hub</span></div>
+      <button class="btn-add" onclick="openModal()">+ Add Task</button>
+    </div>
+    <div class="topbar-row-2">
+      <button class="topbar-icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
         </svg>
       </button>
-      <div class="logo">Task<span>Hub</span></div>
-    </div>
-    <div class="topbar-right">
-      <span class="date-label" id="dateLabel"></span>
-      <button class="btn-add" onclick="openModal()">+ Add Task</button>
+      <button class="topbar-icon-btn" onclick="openArchive()" title="Archive">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="21 8 21 21 3 21 3 8"/>
+          <rect x="1" y="3" width="22" height="5"/>
+          <line x1="10" y1="12" x2="14" y2="12"/>
+        </svg>
+      </button>
+      <span class="date-label-inline" id="dateLabelInline"></span>
+      <button class="topbar-icon-btn" onclick="refreshPage()" title="Refresh">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/>
+          <polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+      <button class="topbar-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon-light">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon-dark" style="display:none;">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
     </div>
   </header>
-  
-  <!-- ── DATE LABEL MOBILE ── -->
-  <div class="date-label-mobile" id="dateLabelMobile"></div>
 
   <!-- ── PERIOD FILTER BAR ── -->
   <div class="period-bar">
-    <div class="period-header">
-      <span class="period-label">Period:</span>
-      <span class="period-range-note" id="periodNote"></span>
-    </div>
-    <div class="period-buttons">
-      <button class="period-btn" data-period="day" onclick="setPeriod('day')" title="Today">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <span class="period-text">Today</span>
-      </button>
-      <button class="period-btn" data-period="tomorrow" onclick="setPeriod('tomorrow')" title="Tomorrow">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <span class="period-text">Tomorrow</span>
-      </button>
-      <button class="period-btn" data-period="week" onclick="setPeriod('week')" title="This Week">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-        <span class="period-text">This Week</span>
-      </button>
-      <button class="period-btn active" data-period="month" onclick="setPeriod('month')" title="This Month">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-          <line x1="8" y1="14" x2="8" y2="14.01"/>
-          <line x1="12" y1="14" x2="12" y2="14.01"/>
-          <line x1="16" y1="14" x2="16" y2="14.01"/>
-          <line x1="8" y1="18" x2="8" y2="18.01"/>
-          <line x1="12" y1="18" x2="12" y2="18.01"/>
-          <line x1="16" y1="18" x2="16" y2="18.01"/>
-        </svg>
-        <span class="period-text">This Month</span>
-      </button>
-      <button class="period-btn" data-period="all" onclick="setPeriod('all')" title="All Time">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 3h18v18H3z"/>
-          <path d="M3 9h18"/>
-          <path d="M9 21V9"/>
-        </svg>
-        <span class="period-text">All Time</span>
-      </button>
+    <div class="period-container">
+      <div class="period-header">
+        <span class="period-label">Period:</span>
+        <span class="period-range-note" id="periodNote"></span>
+      </div>
+      <div class="period-buttons">
+        <button class="period-btn" data-period="day" onclick="setPeriod('day')" title="Today">
+          <span class="period-letter">T</span>
+          <span class="period-text">Today</span>
+        </button>
+        <button class="period-btn" data-period="tomorrow" onclick="setPeriod('tomorrow')" title="Tomorrow">
+          <span class="period-letter">2</span>
+          <span class="period-text">Tomorrow</span>
+        </button>
+        <button class="period-btn" data-period="week" onclick="setPeriod('week')" title="This Week">
+          <span class="period-letter">W</span>
+          <span class="period-text">This Week</span>
+        </button>
+        <button class="period-btn active" data-period="month" onclick="setPeriod('month')" title="This Month">
+          <span class="period-letter">M</span>
+          <span class="period-text">This Month</span>
+        </button>
+        <button class="period-btn" data-period="all" onclick="setPeriod('all')" title="All Time">
+          <span class="period-letter">A</span>
+          <span class="period-text">All Time</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -250,6 +254,30 @@
       <div class="form-actions">
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
         <button class="btn-save"   onclick="saveTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ARCHIVE MODAL ── -->
+  <div class="modal-overlay" id="archiveOverlay" onclick="handleArchiveOverlayClick(event)">
+    <div class="modal archive-modal">
+      <div class="modal-header">
+        <div class="modal-title">Archive</div>
+        <button class="modal-close" onclick="closeArchive()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="archive-content" id="archiveContent">
+        <div class="empty-state">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+            <polyline points="21 8 21 21 3 21 3 8"/>
+            <rect x="1" y="3" width="22" height="5"/>
+            <line x1="10" y1="12" x2="14" y2="12"/>
+          </svg>
+          <h3>No archived tasks</h3>
+          <p>Deleted tasks will appear here.</p>
+        </div>
       </div>
     </div>
   </div>
