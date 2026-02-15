@@ -13,7 +13,7 @@
   <header class="topbar">
     <div class="topbar-row-1">
       <div class="logo">Task<span>Hub</span></div>
-      <button class="btn-add" onclick="openModal()">+ Add Task</button>
+      <button class="btn-add" onclick="openModal()">Add Task</button>
     </div>
     <div class="topbar-row-2">
       <button class="topbar-icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
@@ -57,7 +57,10 @@
 
   <!-- ── PERIOD FILTER BAR ── -->
   <div class="period-bar">
-    <div class="period-container">
+    <button class="period-toggle" id="periodToggle" onclick="togglePeriod()">
+      <span class="toggle-arrow">▼</span> SORT PERIOD <span class="toggle-arrow">▼</span>
+    </button>
+    <div class="period-container" id="periodContainer" style="display: none;">
       <div class="period-header">
         <span class="period-label">Period:</span>
         <span class="period-range-note" id="periodNote"></span>
@@ -75,11 +78,11 @@
           <span class="period-letter">W</span>
           <span class="period-text">This Week</span>
         </button>
-        <button class="period-btn active" data-period="month" onclick="setPeriod('month')" title="This Month">
+        <button class="period-btn" data-period="month" onclick="setPeriod('month')" title="This Month">
           <span class="period-letter">M</span>
           <span class="period-text">This Month</span>
         </button>
-        <button class="period-btn" data-period="twomonths" onclick="setPeriod('twomonths')" title="Next 2 Months">
+        <button class="period-btn active" data-period="twomonths" onclick="setPeriod('twomonths')" title="Next 2 Months">
           <span class="period-letter">O</span>
           <span class="period-text">Next 2 Months</span>
         </button>
