@@ -184,6 +184,76 @@ function refreshPage() {
 
 
 // ══════════════════════════════════════════
+// EXPORT / IMPORT TASKS
+// ══════════════════════════════════════════
+
+function toggleDataMenu() {
+  const menu = document.getElementById('dataMenu');
+  const isVisible = menu.style.display !== 'none';
+  menu.style.display = isVisible ? 'none' : 'block';
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  const dataBtn = document.getElementById('dataBtn');
+  const dataMenu = document.getElementById('dataMenu');
+  if (dataBtn && dataMenu && !dataBtn.contains(e.target)) {
+    dataMenu.style.display = 'none';
+  }
+});
+
+function exportTasks() {
+  const data = {
+    tasks: tasks,
+    archivedTasks: archivedTasks,
+    exportDate: new Date().toISOString(),
+    version: 'v2'
+  };
+  
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `taskhub-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  document.getElementById('dataMenu').style.display = 'none';
+  alert('Tasks exported successfully!');
+}
+
+function importTasks(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (!data.tasks) {
+        throw new Error('Invalid file format');
+      }
+      
+      if (confirm(`Import ${data.tasks.length} tasks? This will replace your current tasks.`)) {
+        tasks = data.tasks || [];
+        archivedTasks = data.archivedTasks || [];
+        persistTasks();
+        persistArchive();
+        alert('Tasks imported successfully!');
+      }
+    } catch (error) {
+      alert('Error importing tasks: ' + error.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Reset file input
+  document.getElementById('dataMenu').style.display = 'none';
+}
+
+
+// ══════════════════════════════════════════
 // ARCHIVE
 // ══════════════════════════════════════════
 
