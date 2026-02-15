@@ -448,6 +448,21 @@ body {
   line-height: 1.5;
 }
 
+/* Target date on card */
+.meta-item.target-date {
+  color: var(--amber);
+}
+
+/* Form label hint */
+.form-label-hint {
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-sub);
+  font-style: italic;
+}
+
 /* ════════════════════════════════
    TASK ACTIONS
    ════════════════════════════════ */
