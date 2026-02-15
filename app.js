@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   TASK HUB — app.js
+   TASK HUB — app.js (with Browser Notifications)
    ══════════════════════════════════════════ */
 
 // ── CONSTANTS & STATE ─────────────────────────────────────────
@@ -7,6 +7,7 @@ const STORAGE_KEY      = 'taskhub-v2-tasks';
 const HIDDEN_CARDS_KEY = 'taskhub-v2-hidden';
 const ARCHIVE_KEY      = 'taskhub-v2-archive';
 const THEME_KEY        = 'taskhub-v2-theme';
+const NOTIFIED_KEY     = 'taskhub-v2-notified';
 
 let tasks        = [];
 let archivedTasks = [];
@@ -16,6 +17,7 @@ let hiddenCards  = new Set();
 let activeSortMode = 'due';  // due or do (default: due)
 let isFullscreen = false;
 let isDarkMode   = false;
+let notifiedTasks = {}; // Track which tasks we've already notified about today
 
 const CAT_LABELS = {
   quiz:       'Quiz',
@@ -30,6 +32,163 @@ const CAT_LABELS = {
 
 const PRI_ORDER    = { high: 0, medium: 1, low: 2 };
 const STATUS_ORDER = { todo: 0, inprog: 1, done: 2 };
+
+
+// ══════════════════════════════════════════
+// NOTIFICATION SYSTEM
+// ══════════════════════════════════════════
+
+function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('Browser does not support notifications');
+    return;
+  }
+
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        showWelcomeNotification();
+      }
+    });
+  }
+}
+
+function showWelcomeNotification() {
+  new Notification('Task Hub Notifications Enabled! 🎉', {
+    body: 'You will now receive reminders for upcoming tasks.',
+    icon: '📋',
+    tag: 'welcome'
+  });
+}
+
+function checkAndNotify() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Load previously notified tasks
+  loadNotifiedTasks();
+
+  // Get today's date string for tracking
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Reset notified tasks if it's a new day
+  if (notifiedTasks.date !== todayStr) {
+    notifiedTasks = { date: todayStr, tasks: {} };
+    persistNotifiedTasks();
+  }
+
+  tasks.forEach(task => {
+    // Skip completed tasks
+    if (task.status === 'done') return;
+
+    // Check Due Date
+    if (task.date) {
+      const dueDate = new Date(task.date + 'T00:00:00');
+      dueDate.setHours(0, 0, 0, 0);
+      
+      const notifyKey = `due-${task.id}-${dueDate.getTime()}`;
+      
+      // Due today
+      if (dueDate.getTime() === today.getTime() && !notifiedTasks.tasks[notifyKey]) {
+        showTaskNotification(
+          '📅 Due Today!',
+          `${task.name} is due today`,
+          task,
+          'due-today'
+        );
+        notifiedTasks.tasks[notifyKey] = true;
+      }
+      
+      // Due tomorrow (1 day before)
+      else if (dueDate.getTime() === tomorrow.getTime() && !notifiedTasks.tasks[notifyKey + '-tomorrow']) {
+        showTaskNotification(
+          '⚠️ Due Tomorrow!',
+          `${task.name} is due tomorrow`,
+          task,
+          'due-tomorrow'
+        );
+        notifiedTasks.tasks[notifyKey + '-tomorrow'] = true;
+      }
+    }
+
+    // Check Do Date
+    if (task.targetDate) {
+      const doDate = new Date(task.targetDate + 'T00:00:00');
+      doDate.setHours(0, 0, 0, 0);
+      
+      const notifyKey = `do-${task.id}-${doDate.getTime()}`;
+      
+      // Do today
+      if (doDate.getTime() === today.getTime() && !notifiedTasks.tasks[notifyKey]) {
+        showTaskNotification(
+          '🎯 Do Today!',
+          `Time to work on: ${task.name}`,
+          task,
+          'do-today'
+        );
+        notifiedTasks.tasks[notifyKey] = true;
+      }
+      
+      // Do tomorrow (1 day before)
+      else if (doDate.getTime() === tomorrow.getTime() && !notifiedTasks.tasks[notifyKey + '-tomorrow']) {
+        showTaskNotification(
+          '📌 Do Tomorrow!',
+          `Prepare for: ${task.name}`,
+          task,
+          'do-tomorrow'
+        );
+        notifiedTasks.tasks[notifyKey + '-tomorrow'] = true;
+      }
+    }
+  });
+
+  persistNotifiedTasks();
+}
+
+function showTaskNotification(title, body, task, tag) {
+  const notification = new Notification(title, {
+    body: body,
+    icon: '📋',
+    tag: tag + '-' + task.id,
+    requireInteraction: false,
+    silent: false
+  });
+
+  notification.onclick = function() {
+    window.focus();
+    notification.close();
+    // Open the task for editing
+    openModal(task.id);
+  };
+}
+
+function loadNotifiedTasks() {
+  try {
+    const stored = localStorage.getItem(NOTIFIED_KEY);
+    if (stored) {
+      notifiedTasks = JSON.parse(stored);
+    } else {
+      notifiedTasks = { date: new Date().toISOString().split('T')[0], tasks: {} };
+    }
+  } catch (e) {
+    notifiedTasks = { date: new Date().toISOString().split('T')[0], tasks: {} };
+  }
+}
+
+function persistNotifiedTasks() {
+  try {
+    localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notifiedTasks));
+  } catch (e) {
+    console.error('Failed to save notified tasks:', e);
+  }
+}
 
 
 // ══════════════════════════════════════════
@@ -81,6 +240,8 @@ function persistTasks() {
     console.error('Failed to save tasks:', e);
   }
   renderAll();
+  // Check notifications when tasks change
+  checkAndNotify();
 }
 
 function persistHidden() {
@@ -852,6 +1013,15 @@ document.addEventListener('keydown', e => {
 
 setDateLabel();
 loadTasks();
+
+// Request notification permission on first load
+requestNotificationPermission();
+
+// Check for notifications immediately
+checkAndNotify();
+
+// Check for notifications every 15 minutes
+setInterval(checkAndNotify, 15 * 60 * 1000);
 
 // Auto-fullscreen on mobile devices
 if (isMobileDevice()) {
