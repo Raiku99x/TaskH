@@ -315,6 +315,23 @@ function getPeriodRange(period) {
     };
   }
 
+  if (period === 'twomonths') {
+    // Current month start
+    start.setDate(1);
+    // Next month end
+    end.setMonth(end.getMonth() + 2, 0);
+    end.setHours(23, 59, 59, 999);
+    const currentMonth = now.toLocaleDateString('en-US', { month: 'short' });
+    const nextMonthDate = new Date(now);
+    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+    const nextMonth = nextMonthDate.toLocaleDateString('en-US', { month: 'short' });
+    return {
+      start,
+      end,
+      label: currentMonth + ' – ' + nextMonth + ' ' + now.getFullYear(),
+    };
+  }
+
   // all time
   return { start: null, end: null, label: 'All time' };
 }
