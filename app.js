@@ -10,6 +10,7 @@ let tasks        = [];
 let editId       = null;
 let activePeriod = 'month';
 let hiddenCards  = new Set();
+let defaultSort  = 'due';  // Due Date is the default sort
 
 const CAT_LABELS = {
   quiz:       'Quiz',
@@ -75,6 +76,16 @@ function getPeriodRange(period) {
 
   if (period === 'day') {
     return { start, end, label: 'Today' };
+  }
+
+  if (period === 'tomorrow') {
+    start.setDate(start.getDate() + 1);
+    end.setDate(end.getDate() + 1);
+    return {
+      start,
+      end,
+      label: start.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+    };
   }
 
   if (period === 'week') {
@@ -201,6 +212,11 @@ function renderTasks() {
       const db = b.date ? new Date(b.date + 'T' + (b.time || '23:59')) : new Date('9999');
       return da - db;
     }
+    if (sort === 'target') {
+      const ta = a.targetDate ? new Date(a.targetDate + 'T' + (a.targetTime || '23:59')) : new Date('9999');
+      const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
+      return ta - tb;
+    }
     if (sort === 'priority') return PRI_ORDER[a.priority] - PRI_ORDER[b.priority];
     if (sort === 'status')   return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     return b.created - a.created;
@@ -236,6 +252,10 @@ function buildTaskCardHTML(task) {
   const dueTxt  = formatDue(task.date, task.time);
   const stLabel = { todo: 'To Do', inprog: 'In Progress', done: 'Done' }[task.status];
 
+  // Show target date only if it exists and is different from the due date
+  const targetTxt    = formatDue(task.targetDate, task.targetTime);
+  const showTarget   = targetTxt && targetTxt !== dueTxt;
+
   const dueMeta = dueTxt ? `
     <span class="meta-item" style="${over ? 'color:var(--red)' : ''}">
       ${over ? '<span class="overdue-dot"></span>' : ''}
@@ -245,7 +265,17 @@ function buildTaskCardHTML(task) {
         <line x1="8"  y1="2" x2="8"  y2="6"/>
         <line x1="3"  y1="10" x2="21" y2="10"/>
       </svg>
-      ${esc(dueTxt)}${over ? ' &mdash; Overdue' : ''}
+      Due: ${esc(dueTxt)}${over ? ' &mdash; Overdue' : ''}
+    </span>` : '';
+
+  const targetMeta = showTarget ? `
+    <span class="meta-item target-date" title="When you plan to work on this">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="12" x2="15" y2="14"/>
+      </svg>
+      Target: ${esc(targetTxt)}
     </span>` : '';
 
   const noteHTML = task.notes
@@ -269,6 +299,7 @@ function buildTaskCardHTML(task) {
       </div>
       <div class="task-meta">
         ${dueMeta}
+        ${targetMeta}
         <span class="meta-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
@@ -349,15 +380,17 @@ function openModal(id) {
 
   if (editId) {
     const task = tasks.find(t => t.id === editId);
-    document.getElementById('fName').value   = task.name;
-    document.getElementById('fCat').value    = task.category;
-    document.getElementById('fPri').value    = task.priority;
-    document.getElementById('fDate').value   = task.date  || '';
-    document.getElementById('fTime').value   = task.time  || '';
-    document.getElementById('fStatus').value = task.status;
-    document.getElementById('fNotes').value  = task.notes || '';
+    document.getElementById('fName').value       = task.name;
+    document.getElementById('fCat').value        = task.category;
+    document.getElementById('fPri').value        = task.priority;
+    document.getElementById('fDate').value       = task.date        || '';
+    document.getElementById('fTime').value       = task.time        || '';
+    document.getElementById('fTargetDate').value = task.targetDate  || '';
+    document.getElementById('fTargetTime').value = task.targetTime  || '';
+    document.getElementById('fStatus').value     = task.status;
+    document.getElementById('fNotes').value      = task.notes       || '';
   } else {
-    ['fName', 'fDate', 'fTime', 'fNotes'].forEach(id => {
+    ['fName', 'fDate', 'fTime', 'fTargetDate', 'fTargetTime', 'fNotes'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('fCat').value    = 'quiz';
@@ -391,12 +424,14 @@ function saveTask() {
 
   const data = {
     name,
-    category: document.getElementById('fCat').value,
-    priority:  document.getElementById('fPri').value,
-    date:      document.getElementById('fDate').value,
-    time:      document.getElementById('fTime').value,
-    status:    document.getElementById('fStatus').value,
-    notes:     document.getElementById('fNotes').value.trim(),
+    category:   document.getElementById('fCat').value,
+    priority:   document.getElementById('fPri').value,
+    date:       document.getElementById('fDate').value,
+    time:       document.getElementById('fTime').value,
+    targetDate: document.getElementById('fTargetDate').value,
+    targetTime: document.getElementById('fTargetTime').value,
+    status:     document.getElementById('fStatus').value,
+    notes:      document.getElementById('fNotes').value.trim(),
   };
 
   if (editId) {
