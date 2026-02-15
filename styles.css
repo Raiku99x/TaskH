@@ -152,27 +152,38 @@ body {
 }
 
 .btn-add {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, #1e4fd9 100%);
   color: #fff;
   border: none;
   border-radius: var(--radius);
-  padding: 8px 18px;
+  padding: 8px 20px;
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
+  transition: all 0.2s;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .btn-add:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.35);
+}
+.btn-add:active {
+  transform: translateY(0);
 }
 
 /* Dark mode specific button style */
 body.dark-mode .btn-add {
-  background: var(--accent);
+  background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%);
   color: #ffffff;
+  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.4);
+}
+body.dark-mode .btn-add:hover {
+  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.5);
 }
 
 /* ════════════════════════════════
