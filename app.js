@@ -251,14 +251,12 @@ function renderTasks() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const fCat   = document.getElementById('filterCat').value;
   const fSt    = document.getElementById('filterStatus').value;
-  const fPri   = document.getElementById('filterPri').value;
   const sort   = document.getElementById('sortBy').value;
 
   let list = tasks.filter(task => {
     if (!taskInPeriod(task))                          return false;
     if (fCat && task.category !== fCat)               return false;
     if (fSt  && task.status   !== fSt)                return false;
-    if (fPri && task.priority !== fPri)               return false;
     if (search &&
         !task.name.toLowerCase().includes(search) &&
         !(task.notes || '').toLowerCase().includes(search)) return false;
@@ -276,7 +274,6 @@ function renderTasks() {
       const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
       return ta - tb;
     }
-    if (sort === 'priority') return PRI_ORDER[a.priority] - PRI_ORDER[b.priority];
     if (sort === 'status')   return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     return b.created - a.created;
   });
@@ -361,18 +358,10 @@ function buildTaskCardHTML(task) {
       <div class="task-top">
         <span class="task-name">${esc(task.name)}</span>
         <span class="badge cat-${task.category}">${CAT_LABELS[task.category]}</span>
-        <span class="priority-badge pri-${task.priority}">${task.priority}</span>
       </div>
       <div class="task-meta">
         ${dueMeta}
         ${doMeta}
-        <span class="meta-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          ${stLabel}
-        </span>
       </div>
       ${noteHTML}
     </div>
@@ -452,7 +441,6 @@ function openModal(id) {
     const task = tasks.find(t => t.id === editId);
     document.getElementById('fName').value       = task.name;
     document.getElementById('fCat').value        = task.category;
-    document.getElementById('fPri').value        = task.priority;
     document.getElementById('fDate').value       = task.date        || '';
     document.getElementById('fTime').value       = task.time        || '';
     document.getElementById('fTargetDate').value = task.targetDate  || '';
@@ -464,7 +452,6 @@ function openModal(id) {
       document.getElementById(id).value = '';
     });
     document.getElementById('fCat').value    = 'quiz';
-    document.getElementById('fPri').value    = 'medium';
     document.getElementById('fStatus').value = 'todo';
   }
 
@@ -495,7 +482,6 @@ function saveTask() {
   const data = {
     name,
     category:   document.getElementById('fCat').value,
-    priority:   document.getElementById('fPri').value,
     date:       document.getElementById('fDate').value,
     time:       document.getElementById('fTime').value,
     targetDate: document.getElementById('fTargetDate').value,
@@ -554,10 +540,11 @@ function esc(str) {
 }
 
 function setDateLabel() {
-  document.getElementById('dateLabel').textContent =
-    new Date().toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-    });
+  const dateText = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  });
+  document.getElementById('dateLabel').textContent = dateText;
+  document.getElementById('dateLabelMobile').textContent = dateText;
 }
 
 
