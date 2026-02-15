@@ -212,6 +212,18 @@ function applyHiddenCards() {
 
 
 // ══════════════════════════════════════════
+// FILTER TOGGLE (MOBILE)
+// ══════════════════════════════════════════
+
+function toggleFilters() {
+  const filtersSection = document.getElementById('filtersSection');
+  const toggleBtn = document.getElementById('filterToggle');
+  filtersSection.classList.toggle('open');
+  toggleBtn.classList.toggle('active');
+}
+
+
+// ══════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════
 
@@ -375,6 +387,10 @@ function buildTaskCardHTML(task) {
       <button class="qs-btn qs-done   ${task.status === 'done'   ? 'active' : ''}"
               onclick="setStatus('${task.id}', 'done')"
               title="Set Done">Done</button>
+
+      <button class="qs-btn-mobile qs-${task.status}"
+              onclick="cycleStatus('${task.id}')"
+              title="Click to change status">${stLabel}</button>
 
       <div class="action-divider"></div>
 
