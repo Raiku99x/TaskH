@@ -11,7 +11,7 @@ const THEME_KEY        = 'taskhub-v2-theme';
 let tasks        = [];
 let archivedTasks = [];
 let editId       = null;
-let activePeriod = 'month';
+let activePeriod = 'twomonths';
 let hiddenCards  = new Set();
 let activeSortMode = 'due';  // due or do (default: due)
 let isFullscreen = false;
@@ -394,6 +394,20 @@ function toggleFilters() {
   const toggleBtn = document.getElementById('filterToggle');
   filtersSection.classList.toggle('open');
   toggleBtn.classList.toggle('active');
+}
+
+
+// ══════════════════════════════════════════
+// PERIOD TOGGLE
+// ══════════════════════════════════════════
+
+function togglePeriod() {
+  const periodContainer = document.getElementById('periodContainer');
+  const toggleBtn = document.getElementById('periodToggle');
+  const isVisible = periodContainer.style.display !== 'none';
+  
+  periodContainer.style.display = isVisible ? 'none' : 'flex';
+  toggleBtn.classList.toggle('expanded', !isVisible);
 }
 
 
