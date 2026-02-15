@@ -28,11 +28,51 @@
   <!-- ── PERIOD FILTER BAR ── -->
   <div class="period-bar">
     <span class="period-label">Show tasks due in:</span>
-    <button class="period-btn" data-period="day"      onclick="setPeriod('day')">Today</button>
-    <button class="period-btn" data-period="tomorrow" onclick="setPeriod('tomorrow')">Tomorrow</button>
-    <button class="period-btn" data-period="week"     onclick="setPeriod('week')">This Week</button>
-    <button class="period-btn active" data-period="month" onclick="setPeriod('month')">This Month</button>
-    <button class="period-btn" data-period="all"      onclick="setPeriod('all')">All Time</button>
+    <button class="period-btn" data-period="day" onclick="setPeriod('day')" title="Today">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span class="period-text">Today</span>
+    </button>
+    <button class="period-btn" data-period="tomorrow" onclick="setPeriod('tomorrow')" title="Tomorrow">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span class="period-text">Tomorrow</span>
+    </button>
+    <button class="period-btn" data-period="week" onclick="setPeriod('week')" title="This Week">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span class="period-text">This Week</span>
+    </button>
+    <button class="period-btn active" data-period="month" onclick="setPeriod('month')" title="This Month">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="8" y1="14" x2="8" y2="14.01"/>
+        <line x1="12" y1="14" x2="12" y2="14.01"/>
+        <line x1="16" y1="14" x2="16" y2="14.01"/>
+        <line x1="8" y1="18" x2="8" y2="18.01"/>
+        <line x1="12" y1="18" x2="12" y2="18.01"/>
+        <line x1="16" y1="18" x2="16" y2="18.01"/>
+      </svg>
+      <span class="period-text">This Month</span>
+    </button>
+    <button class="period-btn" data-period="all" onclick="setPeriod('all')" title="All Time">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3h18v18H3z"/>
+        <path d="M3 9h18"/>
+        <path d="M9 21V9"/>
+      </svg>
+      <span class="period-text">All Time</span>
+    </button>
     <span class="period-range-note" id="periodNote"></span>
   </div>
 
@@ -97,7 +137,13 @@
     <!-- Task Section -->
     <div class="section-header">
       <div class="section-title">All Tasks</div>
-      <div class="filters">
+      <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+        Filters
+      </button>
+      <div class="filters" id="filtersSection">
         <input class="search-input" type="text" id="searchInput" placeholder="Search tasks..." oninput="renderTasks()" />
         <select class="filter-select" id="filterCat" onchange="renderTasks()">
           <option value="">All Categories</option>
