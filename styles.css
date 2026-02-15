@@ -394,9 +394,15 @@ body {
 .cat-project    { background: #dbeafe; color: #1d4ed8; }
 .cat-assignment { background: #fce7f3; color: #be185d; }
 .cat-review     { background: #d1fae5; color: #065f46; }
+.cat-output     { background: #fef9c3; color: #854d0e; }
 .cat-online     { background: #e0f2fe; color: #0369a1; }
 .cat-facetoface { background: #ffedd5; color: #9a3412; }
 .cat-other      { background: var(--slate-lt); color: var(--slate); }
+
+/* Target date on card — form label hint no longer needed */
+.form-label-hint {
+  display: none;
+}
 
 .priority-badge {
   font-size: 10px;
@@ -448,20 +454,7 @@ body {
   line-height: 1.5;
 }
 
-/* Target date on card */
-.meta-item.target-date {
-  color: var(--amber);
-}
-
-/* Form label hint */
-.form-label-hint {
-  font-size: 10px;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--text-sub);
-  font-style: italic;
-}
+/* Do Date on card uses same red/gray as Due Date — no separate color class needed */
 
 /* ════════════════════════════════
    TASK ACTIONS
