@@ -21,10 +21,11 @@
   <!-- ── PERIOD FILTER BAR ── -->
   <div class="period-bar">
     <span class="period-label">Show tasks due in:</span>
-    <button class="period-btn" data-period="day"   onclick="setPeriod('day')">Today</button>
-    <button class="period-btn" data-period="week"  onclick="setPeriod('week')">This Week</button>
+    <button class="period-btn" data-period="day"      onclick="setPeriod('day')">Today</button>
+    <button class="period-btn" data-period="tomorrow" onclick="setPeriod('tomorrow')">Tomorrow</button>
+    <button class="period-btn" data-period="week"     onclick="setPeriod('week')">This Week</button>
     <button class="period-btn active" data-period="month" onclick="setPeriod('month')">This Month</button>
-    <button class="period-btn" data-period="all"   onclick="setPeriod('all')">All Time</button>
+    <button class="period-btn" data-period="all"      onclick="setPeriod('all')">All Time</button>
     <span class="period-range-note" id="periodNote"></span>
   </div>
 
@@ -114,10 +115,11 @@
           <option value="low">Low</option>
         </select>
         <select class="filter-select" id="sortBy" onchange="renderTasks()">
-          <option value="created">Newest First</option>
-          <option value="due">Due Date</option>
+          <option value="due" selected>Due Date</option>
+          <option value="target">Target Date</option>
           <option value="priority">Priority</option>
           <option value="status">Status</option>
+          <option value="created">Newest First</option>
         </select>
       </div>
     </div>
@@ -172,6 +174,17 @@
         <div class="form-group">
           <label class="form-label">Due Time</label>
           <input class="form-control" id="fTime" type="time" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Target Date <span class="form-label-hint">(when you plan to do it)</span></label>
+          <input class="form-control" id="fTargetDate" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Time</label>
+          <input class="form-control" id="fTargetTime" type="time" />
         </div>
       </div>
 
