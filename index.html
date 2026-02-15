@@ -12,7 +12,7 @@
   <!-- ── TOPBAR ── -->
   <header class="topbar">
     <div class="topbar-row-1">
-      <div class="logo">Task<span>Hub</span></div>
+      <div class="logo" onclick="refreshPage()" style="cursor: pointer;" title="Click to refresh">Task<span>Hub</span></div>
       <button class="btn-add" onclick="openModal()">Add Task</button>
     </div>
     <div class="topbar-row-2">
@@ -29,13 +29,32 @@
         </svg>
       </button>
       <span class="date-label-inline" id="dateLabelInline"></span>
-      <button class="topbar-icon-btn" onclick="refreshPage()" title="Refresh">
+      <button class="topbar-icon-btn" id="dataBtn" onclick="toggleDataMenu()" title="Export/Import Tasks">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 4 23 10 17 10"/>
-          <polyline points="1 20 1 14 7 14"/>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
+        <div class="data-menu" id="dataMenu" style="display: none;">
+          <button class="data-menu-item" onclick="exportTasks(); event.stopPropagation();">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export Tasks
+          </button>
+          <button class="data-menu-item" onclick="document.getElementById('importFile').click(); event.stopPropagation();">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Import Tasks
+          </button>
+        </div>
       </button>
+      <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importTasks(event)">
       <button class="topbar-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon-light">
           <circle cx="12" cy="12" r="5"/>
@@ -153,16 +172,18 @@
     <!-- Task Section -->
     <div class="section-header">
       <div class="section-title">All Tasks</div>
-      <div class="sort-buttons">
-        <button class="sort-btn active" data-sort="due" onclick="setSortMode('due')">DUE</button>
-        <button class="sort-btn" data-sort="do" onclick="setSortMode('do')">DO</button>
+      <div class="section-controls">
+        <div class="sort-buttons">
+          <button class="sort-btn active" data-sort="due" onclick="setSortMode('due')">DUE</button>
+          <button class="sort-btn" data-sort="do" onclick="setSortMode('do')">DO</button>
+        </div>
+        <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filters
+        </button>
       </div>
-      <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-        </svg>
-        Filters
-      </button>
       <div class="filters" id="filtersSection">
         <input class="search-input" type="text" id="searchInput" placeholder="Search tasks..." oninput="renderTasks()" />
         <select class="filter-select" id="filterCat" onchange="renderTasks()">
