@@ -352,7 +352,9 @@ function setPeriod(period) {
   });
 
   const { label } = getPeriodRange(period);
-  document.getElementById('periodNote').textContent = label;
+  
+  // Update the toggle button label
+  document.getElementById('periodToggleLabel').textContent = label;
 
   renderAll();
 }
@@ -408,6 +410,12 @@ function togglePeriod() {
   
   periodContainer.style.display = isVisible ? 'none' : 'flex';
   toggleBtn.classList.toggle('expanded', !isVisible);
+  
+  // Update arrows
+  const arrows = toggleBtn.querySelectorAll('.toggle-arrow');
+  arrows.forEach(arrow => {
+    arrow.textContent = isVisible ? '▲' : '▼';
+  });
 }
 
 
@@ -438,7 +446,7 @@ function renderAll() {
   applyHiddenCards();
 
   const { label } = getPeriodRange(activePeriod);
-  document.getElementById('periodNote').textContent = label;
+  document.getElementById('periodToggleLabel').textContent = label;
   document.getElementById('summaryMeta').textContent =
     periodTasks.length + ' task' + (periodTasks.length !== 1 ? 's' : '') + ' in this period';
 }
