@@ -416,36 +416,29 @@ body.dark-mode .btn-add:hover {
 }
 
 .sort-btn {
-  background: transparent;
-  border: 1.5px solid var(--text-sub);
-  border-radius: 6px;
-  padding: 6px 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--text-sub);
-  cursor: pointer;
-  transition: all 0.15s;
-  min-width: 50px;
+  /* Remove old styling - now uses btn-add class */
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 12px !important;
+  padding: 6px 14px !important;
+  min-width: auto !important;
   text-align: center;
 }
 
-.sort-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+/* Override btn-add's ::before for sort buttons (remove the + icon) */
+.sort-btn.btn-add::before {
+  content: '' !important;
+  display: none !important;
 }
 
+/* Active state for sort buttons */
 .sort-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  opacity: 1 !important;
 }
 
-body.dark-mode .sort-btn.active {
-  background: #2b5ce6;
-  border-color: #2b5ce6;
-  color: #fff;
+/* Inactive state for sort buttons */
+.sort-btn:not(.active) {
+  opacity: 0.6 !important;
+  filter: grayscale(30%) !important;
 }
 
 .filter-toggle {
