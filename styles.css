@@ -1109,18 +1109,12 @@ textarea.form-control {
     font-size: 14px !important;
   }
   
-  /* Full-screen modal on mobile */
+  /* Modal on mobile - keep same as desktop (centered, rounded) */
   .modal {
-    position: fixed;
-    inset: 0;
-    max-width: none;
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    padding: 20px;
-    overflow-y: auto;
-  }
-  .modal-overlay.open .modal {
-    transform: none;
+    max-width: 90% !important;
+    width: 480px !important;
+    max-height: 90vh !important;
+    border-radius: 14px !important;
+    padding: 28px 28px 24px !important;
   }
 }
