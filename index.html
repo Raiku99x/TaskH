@@ -21,12 +21,6 @@
           <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
         </svg>
       </button>
-      <button class="topbar-icon-btn" onclick="requestNotificationPermission()" title="Enable Notifications 🔔">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-      </button>
       <button class="topbar-icon-btn" onclick="openArchive()" title="Archive">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="21 8 21 21 3 21 3 8"/>
@@ -328,6 +322,34 @@
             <div class="data-action-desc">Save tasks to backup file</div>
           </div>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONFIRMATION MODAL ── -->
+  <div class="modal-overlay" id="confirmOverlay" onclick="handleConfirmOverlayClick(event)">
+    <div class="modal confirm-modal">
+      <div class="modal-header">
+        <div class="modal-title" id="confirmModalTitle">Confirm Action</div>
+        <button class="modal-close" onclick="closeConfirmModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="confirm-modal-content">
+        <div class="confirm-icon" id="confirmModalIcon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <p class="confirm-message" id="confirmModalMessage">Are you sure you want to proceed?</p>
+      </div>
+
+      <div class="confirm-actions">
+        <button class="cancel-btn" id="confirmCancelBtn" onclick="closeConfirmModal()">Cancel</button>
+        <button class="confirm-btn" id="confirmModalBtn">Confirm</button>
       </div>
     </div>
   </div>
