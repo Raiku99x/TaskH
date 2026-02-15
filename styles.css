@@ -1051,6 +1051,99 @@ textarea.form-control {
 .btn-delete-permanent:hover { opacity: 0.88; }
 
 /* ════════════════════════════════
+   CONFIRMATION MODAL
+   ════════════════════════════════ */
+.confirm-modal {
+  max-width: 420px;
+}
+
+.confirm-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.confirm-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
+}
+
+.confirm-message {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0;
+  max-width: 90%;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+
+.cancel-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex: 1;
+}
+
+.cancel-btn:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.confirm-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex: 1;
+}
+
+.confirm-btn.archive-btn {
+  background: var(--accent);
+  color: #fff;
+}
+
+.confirm-btn.archive-btn:hover {
+  opacity: 0.88;
+}
+
+.confirm-btn.delete-btn {
+  background: var(--red);
+  color: #fff;
+}
+
+.confirm-btn.delete-btn:hover {
+  opacity: 0.88;
+}
+
+/* ════════════════════════════════
    RESPONSIVE
    ════════════════════════════════ */
 @media (max-width: 700px) {
