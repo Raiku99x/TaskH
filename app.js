@@ -13,7 +13,7 @@ let archivedTasks = [];
 let editId       = null;
 let activePeriod = 'month';
 let hiddenCards  = new Set();
-let defaultSort  = 'do';  // Do Date is the default sort
+let activeSortMode = 'all';  // all, due, or do
 let isFullscreen = false;
 let isDarkMode   = false;
 
@@ -381,6 +381,22 @@ function toggleFilters() {
 
 
 // ══════════════════════════════════════════
+// SORT MODE BUTTONS
+// ══════════════════════════════════════════
+
+function setSortMode(mode) {
+  activeSortMode = mode;
+  
+  // Update button states
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === mode);
+  });
+  
+  renderTasks();
+}
+
+
+// ══════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════
 
@@ -408,7 +424,6 @@ function renderTasks() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const fCat   = document.getElementById('filterCat').value;
   const fSt    = document.getElementById('filterStatus').value;
-  const sort   = document.getElementById('sortBy').value;
 
   let list = tasks.filter(task => {
     if (!taskInPeriod(task))                          return false;
@@ -420,20 +435,23 @@ function renderTasks() {
     return true;
   });
 
-  list.sort((a, b) => {
-    if (sort === 'due') {
+  // Sort based on active sort mode
+  if (activeSortMode === 'due') {
+    list.sort((a, b) => {
       const da = a.date ? new Date(a.date + 'T' + (a.time || '23:59')) : new Date('9999');
       const db = b.date ? new Date(b.date + 'T' + (b.time || '23:59')) : new Date('9999');
       return da - db;
-    }
-    if (sort === 'do') {
+    });
+  } else if (activeSortMode === 'do') {
+    list.sort((a, b) => {
       const ta = a.targetDate ? new Date(a.targetDate + 'T' + (a.targetTime || '23:59')) : new Date('9999');
       const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
       return ta - tb;
-    }
-    if (sort === 'status')   return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-    return b.created - a.created;
-  });
+    });
+  } else {
+    // 'all' mode - sort by created date (newest first)
+    list.sort((a, b) => b.created - a.created);
+  }
 
   const el = document.getElementById('taskList');
 
