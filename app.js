@@ -187,20 +187,17 @@ function refreshPage() {
 // EXPORT / IMPORT TASKS
 // ══════════════════════════════════════════
 
-function toggleDataMenu() {
-  const menu = document.getElementById('dataMenu');
-  const isVisible = menu.style.display !== 'none';
-  menu.style.display = isVisible ? 'none' : 'block';
+function openDataModal() {
+  document.getElementById('dataOverlay').classList.add('open');
 }
 
-// Close menu when clicking outside
-document.addEventListener('click', (e) => {
-  const dataBtn = document.getElementById('dataBtn');
-  const dataMenu = document.getElementById('dataMenu');
-  if (dataBtn && dataMenu && !dataBtn.contains(e.target)) {
-    dataMenu.style.display = 'none';
-  }
-});
+function closeDataModal() {
+  document.getElementById('dataOverlay').classList.remove('open');
+}
+
+function handleDataOverlayClick(e) {
+  if (e.target === document.getElementById('dataOverlay')) closeDataModal();
+}
 
 function exportTasks() {
   const data = {
@@ -219,11 +216,15 @@ function exportTasks() {
   a.click();
   URL.revokeObjectURL(url);
   
-  document.getElementById('dataMenu').style.display = 'none';
+  closeDataModal();
   alert('Tasks exported successfully!');
 }
 
-function importTasks(event) {
+function importTasks() {
+  document.getElementById('importFile').click();
+}
+
+function importTasksFromFile(event) {
   const file = event.target.files[0];
   if (!file) return;
   
@@ -241,6 +242,7 @@ function importTasks(event) {
         archivedTasks = data.archivedTasks || [];
         persistTasks();
         persistArchive();
+        closeDataModal();
         alert('Tasks imported successfully!');
       }
     } catch (error) {
@@ -249,7 +251,6 @@ function importTasks(event) {
   };
   reader.readAsText(file);
   event.target.value = ''; // Reset file input
-  document.getElementById('dataMenu').style.display = 'none';
 }
 
 
