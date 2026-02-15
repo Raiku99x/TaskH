@@ -152,18 +152,18 @@ body {
 }
 
 .btn-add {
-  background: linear-gradient(135deg, var(--accent) 0%, #1e4fd9 100%);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%) !important;
+  color: #fff !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
   border-radius: var(--radius);
   padding: 8px 20px;
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.25);
+  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.25) !important;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -175,24 +175,24 @@ body {
   line-height: 1;
 }
 .btn-add:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.35);
-  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
 .btn-add:active {
-  transform: translateY(0);
+  transform: translateY(0) !important;
 }
 
 /* Dark mode specific button style */
 body.dark-mode .btn-add {
-  background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%);
-  color: #ffffff;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.4);
+  background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.4) !important;
 }
 body.dark-mode .btn-add:hover {
-  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.5);
-  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* ════════════════════════════════
@@ -212,29 +212,25 @@ body.dark-mode .btn-add:hover {
   background: none;
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 6px 16px;
+  padding: 8px 16px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--text-sub);
   cursor: pointer;
   transition: all 0.15s;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .period-toggle:hover {
   background: var(--surface2);
   border-color: var(--accent);
   color: var(--accent);
 }
-.period-toggle.expanded .toggle-arrow {
-  transform: rotate(180deg);
-}
 .toggle-arrow {
   font-size: 10px;
-  transition: transform 0.2s;
   display: inline-block;
 }
 
@@ -245,27 +241,6 @@ body.dark-mode .btn-add:hover {
   gap: 10px;
   width: 100%;
   max-width: 600px;
-}
-
-.period-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.period-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-sub);
-  white-space: nowrap;
-}
-
-.period-range-note {
-  font-size: 11px;
-  color: var(--text-sub);
-  font-style: italic;
 }
 
 .period-buttons {
