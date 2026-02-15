@@ -120,6 +120,17 @@ body {
   transform: translateY(-1px);
 }
 
+/* Mobile date label */
+.date-label-mobile {
+  display: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--text-sub);
+  text-align: center;
+}
+
 /* ════════════════════════════════
    PERIOD FILTER BAR
    ════════════════════════════════ */
@@ -128,9 +139,16 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 0 32px;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 46px;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.period-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .period-label {
@@ -139,8 +157,20 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-sub);
-  margin-right: 8px;
   white-space: nowrap;
+}
+
+.period-range-note {
+  font-size: 11px;
+  color: var(--text-sub);
+  font-style: italic;
+}
+
+.period-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .period-btn {
@@ -171,13 +201,6 @@ body {
   border-color: var(--accent);
   color: #fff;
   font-weight: 600;
-}
-
-.period-range-note {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--text-sub);
-  font-style: italic;
 }
 
 /* ════════════════════════════════
@@ -416,6 +439,13 @@ body {
 .status-dot.inprog { color: var(--amber); background: var(--amber); }
 .status-dot.done   { color: var(--green); background: var(--green); }
 
+@media (max-width: 700px) {
+  .status-dot {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 /* Task body */
 .task-body { min-width: 0; }
 
@@ -454,18 +484,6 @@ body {
 .cat-online     { background: #e0f2fe; color: #0369a1; }
 .cat-facetoface { background: #ffedd5; color: #9a3412; }
 .cat-other      { background: var(--slate-lt); color: var(--slate); }
-
-.priority-badge {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 20px;
-}
-.pri-low    { background: var(--green-lt); color: var(--green); }
-.pri-medium { background: var(--amber-lt); color: var(--amber); }
-.pri-high   { background: var(--red-lt);   color: var(--red); }
 
 /* Meta row */
 .task-meta {
@@ -768,6 +786,14 @@ textarea.form-control {
 @media (max-width: 700px) {
   .topbar,
   .period-bar { padding: 0 16px; }
+  
+  /* Hide desktop date label, show mobile one */
+  .date-label {
+    display: none;
+  }
+  .date-label-mobile {
+    display: block;
+  }
 
   .main { padding: 18px 12px 48px; }
 
@@ -824,8 +850,18 @@ textarea.form-control {
     gap: 6px;
   }
   .icon-btn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  /* Increase meta item font size for readability */
+  .meta-item {
+    font-size: 13px;
+  }
+  
+  /* Increase task name font size */
+  .task-name {
+    font-size: 16px;
   }
   
   /* Full-screen modal on mobile */
