@@ -2,7 +2,7 @@
    TASK HUB — styles.css
    ══════════════════════════════════════════ */
 
-/* ── CSS VARIABLES ── */
+/* ── CSS VARIABLES (LIGHT MODE) ── */
 :root {
   --bg:        #f5f4f1;
   --surface:   #ffffff;
@@ -23,6 +23,36 @@
   --radius:    10px;
   --shadow:    0 2px 12px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  
+  --logo-task-color: #1c1a17;
+  --logo-hub-color: #2b5ce6;
+  --logo-hub-bg: transparent;
+}
+
+/* ── DARK MODE VARIABLES ── */
+body.dark-mode {
+  --bg:        #1a1a1a;
+  --surface:   #2d2d2d;
+  --surface2:  #3a3a3a;
+  --border:    #4a4a4a;
+  --text:      #e5e5e5;
+  --text-sub:  #a0a0a0;
+  --accent:    #1c1a17;
+  --accent-lt: #2d2d2d;
+  --green:     #22c55e;
+  --green-lt:  #1e3a2a;
+  --amber:     #f59e0b;
+  --amber-lt:  #3a2e1a;
+  --red:       #ef4444;
+  --red-lt:    #3a1a1a;
+  --slate:     #94a3b8;
+  --slate-lt:  #2d3a4a;
+  --shadow:    0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  
+  --logo-task-color: #ffffff;
+  --logo-hub-color: #1c1a17;
+  --logo-hub-bg: #f97316;
 }
 
 /* ── RESET ── */
@@ -39,6 +69,7 @@ body {
   min-height: 100vh;
   font-size: 14px;
   line-height: 1.5;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 /* ════════════════════════════════
@@ -47,23 +78,43 @@ body {
 .topbar {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 0 32px;
-  height: 60px;
+  padding: 16px 32px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
-.topbar-left {
+.topbar-row-1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-row-2 {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.fullscreen-btn {
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: var(--logo-task-color);
+}
+.logo span { 
+  color: var(--logo-hub-color);
+  background: var(--logo-hub-bg);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.topbar-icon-btn {
   background: none;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -75,32 +126,20 @@ body {
   cursor: pointer;
   color: var(--text-sub);
   transition: all 0.15s;
+  flex-shrink: 0;
 }
-.fullscreen-btn:hover {
+.topbar-icon-btn:hover {
   background: var(--surface2);
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.logo {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.5px;
-  color: var(--text);
-}
-.logo span { color: var(--accent); }
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.date-label {
+.date-label-inline {
   font-size: 13px;
   color: var(--text-sub);
   font-weight: 500;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .btn-add {
@@ -114,21 +153,17 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
+  flex-shrink: 0;
 }
 .btn-add:hover {
   opacity: 0.88;
   transform: translateY(-1px);
 }
 
-/* Mobile date label */
-.date-label-mobile {
-  display: none;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 16px;
-  font-size: 12px;
-  color: var(--text-sub);
-  text-align: center;
+/* Dark mode specific button style */
+body.dark-mode .btn-add {
+  background: var(--accent);
+  color: #ffffff;
 }
 
 /* ════════════════════════════════
@@ -137,12 +172,19 @@ body {
 .period-bar {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 0 32px;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.period-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
 }
 
 .period-header {
@@ -171,13 +213,14 @@ body {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .period-btn {
   background: none;
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 4px 14px;
+  padding: 6px 16px;
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
   font-weight: 500;
@@ -187,10 +230,11 @@ body {
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
-.period-btn svg {
-  flex-shrink: 0;
+.period-letter {
+  font-weight: 700;
+  font-size: 14px;
 }
 .period-btn:hover {
   border-color: var(--accent);
@@ -467,7 +511,7 @@ body {
   color: var(--text-sub);
 }
 
-/* Category & priority badges */
+/* Category badges */
 .badge {
   font-size: 11px;
   font-weight: 600;
@@ -676,9 +720,15 @@ body {
   box-shadow: var(--shadow-lg);
   transform: translateY(12px) scale(0.98);
   transition: transform 0.2s;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 .modal-overlay.open .modal {
   transform: translateY(0) scale(1);
+}
+
+.archive-modal {
+  max-width: 700px;
 }
 
 .modal-header {
@@ -730,7 +780,7 @@ body {
 }
 .form-control:focus {
   border-color: var(--accent);
-  background: #fff;
+  background: var(--surface);
 }
 textarea.form-control {
   resize: vertical;
@@ -781,18 +831,111 @@ textarea.form-control {
 .btn-save:hover { opacity: 0.88; }
 
 /* ════════════════════════════════
+   ARCHIVE MODAL
+   ════════════════════════════════ */
+.archive-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+}
+
+.archive-task-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.archive-task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.archive-task-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.archive-task-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.archive-meta-text {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.archive-task-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-restore {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.15s;
+}
+.btn-restore:hover { opacity: 0.88; }
+
+.btn-delete-permanent {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-delete-permanent:hover { opacity: 0.88; }
+
+/* ════════════════════════════════
    RESPONSIVE
    ════════════════════════════════ */
 @media (max-width: 700px) {
-  .topbar,
-  .period-bar { padding: 0 16px; }
+  .topbar {
+    padding: 12px 16px;
+  }
   
-  /* Hide desktop date label, show mobile one */
-  .date-label {
+  .period-bar {
+    padding: 10px 16px;
+  }
+
+  /* Show period buttons as letters only */
+  .period-btn {
+    padding: 6px;
+    min-width: 34px;
+    justify-content: center;
+  }
+  .period-text {
     display: none;
   }
-  .date-label-mobile {
-    display: block;
+  .period-letter {
+    font-size: 15px;
   }
 
   .main { padding: 18px 12px 48px; }
@@ -822,16 +965,6 @@ textarea.form-control {
     grid-row: 2;
     margin-top: 10px;
     justify-content: flex-start;
-  }
-
-  /* Hide period button text, show only icons */
-  .period-btn {
-    padding: 6px;
-    min-width: 34px;
-    justify-content: center;
-  }
-  .period-text {
-    display: none;
   }
   
   /* Show filter toggle button, hide filters by default */
@@ -897,5 +1030,11 @@ textarea.form-control {
   }
   .modal-overlay.open .modal {
     transform: none;
+  }
+  
+  /* Date label moves to row 2 on mobile */
+  .date-label-inline {
+    margin-left: 0;
+    order: 3;
   }
 }
