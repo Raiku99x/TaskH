@@ -152,47 +152,51 @@ body {
 }
 
 .btn-add {
-  background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%) !important;
-  color: #fff !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 10px !important;
-  padding: 8px 20px !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
   font-family: 'DM Sans', sans-serif !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.15s !important;
   flex-shrink: 0 !important;
-  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.25) !important;
+  box-shadow: none !important;
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 4px !important;
 }
 .btn-add::before {
   content: '+' !important;
-  font-size: 18px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   line-height: 1 !important;
 }
 .btn-add:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.35) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: var(--surface2) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 .btn-add:active {
-  transform: translateY(0) !important;
+  transform: none !important;
 }
 
 /* Dark mode specific button style */
 body.dark-mode .btn-add {
-  background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%) !important;
-  color: #ffffff !important;
-  border: 2px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 2px 8px rgba(43, 92, 230, 0.4) !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border) !important;
+  box-shadow: none !important;
 }
 body.dark-mode .btn-add:hover {
-  box-shadow: 0 4px 12px rgba(43, 92, 230, 0.5) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  background: var(--surface2) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
 }
 
 /* ════════════════════════════════
@@ -416,29 +420,37 @@ body.dark-mode .btn-add:hover {
 }
 
 .sort-btn {
-  /* Remove old styling - now uses btn-add class */
-  font-family: 'DM Sans', sans-serif !important;
-  font-size: 12px !important;
-  padding: 6px 14px !important;
-  min-width: auto !important;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 50px;
   text-align: center;
 }
 
-/* Override btn-add's ::before for sort buttons (remove the + icon) */
-.sort-btn.btn-add::before {
-  content: '' !important;
-  display: none !important;
+.sort-btn:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-/* Active state for sort buttons */
 .sort-btn.active {
-  opacity: 1 !important;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
-/* Inactive state for sort buttons */
-.sort-btn:not(.active) {
-  opacity: 0.6 !important;
-  filter: grayscale(30%) !important;
+body.dark-mode .sort-btn.active {
+  background: #2b5ce6;
+  border-color: #2b5ce6;
+  color: #fff;
 }
 
 .filter-toggle {
@@ -1084,17 +1096,17 @@ textarea.form-control {
     font-size: 16px;
   }
   
-  /* Add Task button mobile styling */
+  /* Add Task button mobile styling - simple outline style */
   .btn-add {
-    font-size: 13px !important;
-    padding: 7px 16px !important;
-    background: linear-gradient(135deg, #2b5ce6 0%, #1e4fd9 100%) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 2px 8px rgba(43, 92, 230, 0.3) !important;
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    background: transparent !important;
+    border: 1.5px solid var(--border) !important;
+    box-shadow: none !important;
   }
   .btn-add::before {
     content: '+' !important;
-    font-size: 16px !important;
+    font-size: 14px !important;
   }
   
   /* Full-screen modal on mobile */
