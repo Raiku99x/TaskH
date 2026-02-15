@@ -148,6 +148,11 @@
     <!-- Task Section -->
     <div class="section-header">
       <div class="section-title">All Tasks</div>
+      <div class="sort-buttons">
+        <button class="sort-btn active" data-sort="all" onclick="setSortMode('all')">ALL</button>
+        <button class="sort-btn" data-sort="due" onclick="setSortMode('due')">DUE</button>
+        <button class="sort-btn" data-sort="do" onclick="setSortMode('do')">DO</button>
+      </div>
       <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -172,12 +177,6 @@
           <option value="todo">To Do</option>
           <option value="inprog">In Progress</option>
           <option value="done">Done</option>
-        </select>
-        <select class="filter-select" id="sortBy" onchange="renderTasks()">
-          <option value="due" selected>Due Date</option>
-          <option value="do">Do Date</option>
-          <option value="status">Status</option>
-          <option value="created">Newest First</option>
         </select>
       </div>
     </div>
