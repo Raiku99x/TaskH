@@ -5,13 +5,17 @@
 // ── CONSTANTS & STATE ─────────────────────────────────────────
 const STORAGE_KEY      = 'taskhub-v2-tasks';
 const HIDDEN_CARDS_KEY = 'taskhub-v2-hidden';
+const ARCHIVE_KEY      = 'taskhub-v2-archive';
+const THEME_KEY        = 'taskhub-v2-theme';
 
 let tasks        = [];
+let archivedTasks = [];
 let editId       = null;
 let activePeriod = 'month';
 let hiddenCards  = new Set();
 let defaultSort  = 'do';  // Do Date is the default sort
 let isFullscreen = false;
+let isDarkMode   = false;
 
 const CAT_LABELS = {
   quiz:       'Quiz',
@@ -47,6 +51,26 @@ function loadTasks() {
     hiddenCards = new Set();
   }
 
+  try {
+    const storedArchive = localStorage.getItem(ARCHIVE_KEY);
+    if (storedArchive) archivedTasks = JSON.parse(storedArchive);
+  } catch (e) {
+    archivedTasks = [];
+  }
+
+  try {
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    if (storedTheme) {
+      isDarkMode = storedTheme === 'dark';
+      if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        updateThemeIcon();
+      }
+    }
+  } catch (e) {
+    isDarkMode = false;
+  }
+
   renderAll();
 }
 
@@ -66,6 +90,22 @@ function persistHidden() {
     console.error('Failed to save hidden cards:', e);
   }
   applyHiddenCards();
+}
+
+function persistArchive() {
+  try {
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedTasks));
+  } catch (e) {
+    console.error('Failed to save archive:', e);
+  }
+}
+
+function persistTheme() {
+  try {
+    localStorage.setItem(THEME_KEY, isDarkMode ? 'dark' : 'light');
+  } catch (e) {
+    console.error('Failed to save theme:', e);
+  }
 }
 
 
@@ -108,6 +148,123 @@ function updateFullscreenButton() {
 
 // Listen for fullscreen changes
 document.addEventListener('fullscreenchange', updateFullscreenButton);
+
+
+// ══════════════════════════════════════════
+// THEME TOGGLE
+// ══════════════════════════════════════════
+
+function toggleTheme() {
+  isDarkMode = !isDarkMode;
+  document.body.classList.toggle('dark-mode', isDarkMode);
+  updateThemeIcon();
+  persistTheme();
+}
+
+function updateThemeIcon() {
+  const lightIcon = document.querySelector('.theme-icon-light');
+  const darkIcon = document.querySelector('.theme-icon-dark');
+  if (isDarkMode) {
+    lightIcon.style.display = 'none';
+    darkIcon.style.display = 'block';
+  } else {
+    lightIcon.style.display = 'block';
+    darkIcon.style.display = 'none';
+  }
+}
+
+
+// ══════════════════════════════════════════
+// REFRESH PAGE
+// ══════════════════════════════════════════
+
+function refreshPage() {
+  location.reload();
+}
+
+
+// ══════════════════════════════════════════
+// ARCHIVE
+// ══════════════════════════════════════════
+
+function openArchive() {
+  renderArchive();
+  document.getElementById('archiveOverlay').classList.add('open');
+}
+
+function closeArchive() {
+  document.getElementById('archiveOverlay').classList.remove('open');
+}
+
+function handleArchiveOverlayClick(e) {
+  if (e.target === document.getElementById('archiveOverlay')) closeArchive();
+}
+
+function renderArchive() {
+  const el = document.getElementById('archiveContent');
+  
+  if (!archivedTasks.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <polyline points="21 8 21 21 3 21 3 8"/>
+          <rect x="1" y="3" width="22" height="5"/>
+          <line x1="10" y1="12" x2="14" y2="12"/>
+        </svg>
+        <h3>No archived tasks</h3>
+        <p>Deleted tasks will appear here.</p>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = archivedTasks.map(task => `
+    <div class="archive-task-card">
+      <div class="archive-task-info">
+        <div class="archive-task-name">${esc(task.name)}</div>
+        <div class="archive-task-meta">
+          <span class="badge cat-${task.category}">${CAT_LABELS[task.category]}</span>
+          ${task.date ? `<span class="archive-meta-text">Due: ${formatDue(task.date, task.time)}</span>` : ''}
+        </div>
+      </div>
+      <div class="archive-task-actions">
+        <button class="btn-restore" onclick="restoreTask('${task.id}')" title="Restore">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 14 4 9 9 4"/>
+            <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+          </svg>
+          Restore
+        </button>
+        <button class="btn-delete-permanent" onclick="deletePermanent('${task.id}')" title="Delete permanently">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function restoreTask(id) {
+  const idx = archivedTasks.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  
+  const task = archivedTasks[idx];
+  tasks.push(task);
+  archivedTasks.splice(idx, 1);
+  
+  persistTasks();
+  persistArchive();
+  renderArchive();
+}
+
+function deletePermanent(id) {
+  if (!confirm('Permanently delete this task? This cannot be undone.')) return;
+  archivedTasks = archivedTasks.filter(t => t.id !== id);
+  persistArchive();
+  renderArchive();
+}
 
 
 // ══════════════════════════════════════════
@@ -423,9 +580,16 @@ function cycleStatus(id) {
 }
 
 function deleteTask(id) {
-  if (!confirm('Delete this task?')) return;
-  tasks = tasks.filter(t => t.id !== id);
+  if (!confirm('Move this task to archive?')) return;
+  const idx = tasks.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  
+  const task = tasks[idx];
+  archivedTasks.push(task);
+  tasks.splice(idx, 1);
+  
   persistTasks();
+  persistArchive();
 }
 
 
@@ -543,8 +707,7 @@ function setDateLabel() {
   const dateText = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
-  document.getElementById('dateLabel').textContent = dateText;
-  document.getElementById('dateLabelMobile').textContent = dateText;
+  document.getElementById('dateLabelInline').textContent = dateText;
 }
 
 
