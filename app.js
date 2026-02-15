@@ -17,6 +17,7 @@ const CAT_LABELS = {
   project:    'Project',
   assignment: 'Assignment',
   review:     'Review',
+  output:     'Output',
   online:     'Online Appt.',
   facetoface: 'Face-to-face',
   other:      'Other',
@@ -252,9 +253,12 @@ function buildTaskCardHTML(task) {
   const dueTxt  = formatDue(task.date, task.time);
   const stLabel = { todo: 'To Do', inprog: 'In Progress', done: 'Done' }[task.status];
 
-  // Show target date only if it exists and is different from the due date
-  const targetTxt    = formatDue(task.targetDate, task.targetTime);
-  const showTarget   = targetTxt && targetTxt !== dueTxt;
+  // Do Date: show only if different from due date
+  const doTxt      = formatDue(task.targetDate, task.targetTime);
+  const showDo     = doTxt && doTxt !== dueTxt;
+  const doOverdue  = task.targetDate && task.status !== 'done'
+    ? new Date(task.targetDate + 'T' + (task.targetTime || '23:59')) < new Date()
+    : false;
 
   const dueMeta = dueTxt ? `
     <span class="meta-item" style="${over ? 'color:var(--red)' : ''}">
@@ -268,14 +272,18 @@ function buildTaskCardHTML(task) {
       Due: ${esc(dueTxt)}${over ? ' &mdash; Overdue' : ''}
     </span>` : '';
 
-  const targetMeta = showTarget ? `
-    <span class="meta-item target-date" title="When you plan to work on this">
+  const doMeta = showDo ? `
+    <span class="meta-item" style="${doOverdue ? 'color:var(--red)' : ''}">
+      ${doOverdue ? '<span class="overdue-dot"></span>' : ''}
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="12" x2="15" y2="14"/>
+        <circle cx="12" cy="12" r="4"/>
+        <line x1="12" y1="2"  x2="12" y2="5"/>
+        <line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="2"  y1="12" x2="5"  y2="12"/>
+        <line x1="19" y1="12" x2="22" y2="12"/>
       </svg>
-      Target: ${esc(targetTxt)}
+      Do Date: ${esc(doTxt)}${doOverdue ? ' &mdash; Overdue' : ''}
     </span>` : '';
 
   const noteHTML = task.notes
@@ -299,7 +307,7 @@ function buildTaskCardHTML(task) {
       </div>
       <div class="task-meta">
         ${dueMeta}
-        ${targetMeta}
+        ${doMeta}
         <span class="meta-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
