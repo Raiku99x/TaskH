@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <div class="logo">Task<span>Hub</span></div>
+    <div class="topbar-right">
+      <span class="date-label" id="dateLabel"></span>
+      <button class="btn-add" onclick="openModal()">+ Add Task</button>
+    </div>
+  </header>
+
+  <!-- ── PERIOD FILTER BAR ── -->
+  <div class="period-bar">
+    <span class="period-label">Show tasks due in:</span>
+    <button class="period-btn" data-period="day"   onclick="setPeriod('day')">Today</button>
+    <button class="period-btn" data-period="week"  onclick="setPeriod('week')">This Week</button>
+    <button class="period-btn active" data-period="month" onclick="setPeriod('month')">This Month</button>
+    <button class="period-btn" data-period="all"   onclick="setPeriod('all')">All Time</button>
+    <span class="period-range-note" id="periodNote"></span>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Stat Cards -->
+    <div class="summary-header">
+      <span class="summary-meta" id="summaryMeta"></span>
+      <button class="restore-btn" id="restoreBtn" onclick="restoreAllCards()">Show hidden cards</button>
+    </div>
+
+    <div class="summary-grid" id="summaryGrid">
+
+      <div class="stat-card total" id="card-total">
+        <button class="hide-card-btn" onclick="hideCard('total')" title="Hide this card">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+        <div class="stat-label">Total Tasks</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-sub">all categories</div>
+      </div>
+
+      <div class="stat-card todo" id="card-todo">
+        <button class="hide-card-btn" onclick="hideCard('todo')" title="Hide this card">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+        <div class="stat-label">To Do</div>
+        <div class="stat-value" id="statTodo">0</div>
+        <div class="stat-sub">not started</div>
+      </div>
+
+      <div class="stat-card inprog" id="card-inprog">
+        <button class="hide-card-btn" onclick="hideCard('inprog')" title="Hide this card">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value" id="statInprog">0</div>
+        <div class="stat-sub">ongoing</div>
+      </div>
+
+      <div class="stat-card done" id="card-done">
+        <button class="hide-card-btn" onclick="hideCard('done')" title="Hide this card">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+        <div class="stat-label">Done</div>
+        <div class="stat-value" id="statDone">0</div>
+        <div class="stat-sub">completed</div>
+      </div>
+
+      <div class="stat-card" id="card-overdue">
+        <button class="hide-card-btn" onclick="hideCard('overdue')" title="Hide this card">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+        <div class="stat-label">Overdue</div>
+        <div class="stat-value" id="statOverdue" style="color:var(--red)">0</div>
+        <div class="stat-sub">past due date</div>
+      </div>
+
+    </div>
+
+    <!-- Task Section -->
+    <div class="section-header">
+      <div class="section-title">All Tasks</div>
+      <div class="filters">
+        <input class="search-input" type="text" id="searchInput" placeholder="Search tasks..." oninput="renderTasks()" />
+        <select class="filter-select" id="filterCat" onchange="renderTasks()">
+          <option value="">All Categories</option>
+          <option value="quiz">Quiz</option>
+          <option value="project">Project</option>
+          <option value="assignment">Assignment</option>
+          <option value="review">Review</option>
+          <option value="online">Online Appt.</option>
+          <option value="facetoface">Face-to-face</option>
+          <option value="other">Other</option>
+        </select>
+        <select class="filter-select" id="filterStatus" onchange="renderTasks()">
+          <option value="">All Status</option>
+          <option value="todo">To Do</option>
+          <option value="inprog">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+        <select class="filter-select" id="filterPri" onchange="renderTasks()">
+          <option value="">All Priority</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select class="filter-select" id="sortBy" onchange="renderTasks()">
+          <option value="created">Newest First</option>
+          <option value="due">Due Date</option>
+          <option value="priority">Priority</option>
+          <option value="status">Status</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+
+  </main>
+
+  <!-- ── ADD / EDIT MODAL ── -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Add Task</div>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Task Name *</label>
+        <input class="form-control" id="fName" type="text" placeholder="e.g. Submit Chemistry quiz" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-control" id="fCat">
+            <option value="quiz">Quiz</option>
+            <option value="project">Project</option>
+            <option value="assignment">Assignment</option>
+            <option value="review">Review</option>
+            <option value="online">Online Appointment</option>
+            <option value="facetoface">Face-to-face</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-control" id="fPri">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input class="form-control" id="fDate" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Time</label>
+          <input class="form-control" id="fTime" type="time" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control" id="fStatus">
+          <option value="todo">To Do</option>
+          <option value="inprog">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes / Description</label>
+        <textarea class="form-control" id="fNotes" placeholder="Any additional details, links, or reminders..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save"   onclick="saveTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
