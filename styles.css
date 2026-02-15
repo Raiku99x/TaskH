@@ -98,6 +98,7 @@ body {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .logo {
@@ -138,6 +139,10 @@ body {
   font-size: 13px;
   color: var(--text-sub);
   font-weight: 500;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 0 12px;
+}
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -372,6 +377,45 @@ body.dark-mode .btn-add {
   font-family: 'Syne', sans-serif;
   font-size: 18px;
   font-weight: 700;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.sort-btn {
+  background: transparent;
+  border: 1.5px solid var(--text-sub);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 50px;
+  text-align: center;
+}
+
+.sort-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sort-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+body.dark-mode .sort-btn.active {
+  background: #2b5ce6;
+  border-color: #2b5ce6;
+  color: #fff;
 }
 
 .filter-toggle {
@@ -1030,11 +1074,5 @@ textarea.form-control {
   }
   .modal-overlay.open .modal {
     transform: none;
-  }
-  
-  /* Date label moves to row 2 on mobile */
-  .date-label-inline {
-    margin-left: 0;
-    order: 3;
   }
 }
