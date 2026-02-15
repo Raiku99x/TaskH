@@ -17,7 +17,7 @@ let hiddenCards  = new Set();
 let activeSortMode = 'due';  // due or do (default: due)
 let isFullscreen = false;
 let isDarkMode   = false;
-let notifiedTasks = {}; // Track which tasks we've already notified about today
+let notifiedTasks = {}; // Track which tasks we've already notified about with timestamps
 
 const CAT_LABELS = {
   quiz:       'Quiz',
@@ -66,7 +66,8 @@ function checkAndNotify() {
     return;
   }
 
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   
   const tomorrow = new Date(today);
@@ -84,6 +85,8 @@ function checkAndNotify() {
     persistNotifiedTasks();
   }
 
+  const currentTime = now.getTime();
+
   tasks.forEach(task => {
     // Skip completed tasks
     if (task.status === 'done') return;
@@ -95,26 +98,36 @@ function checkAndNotify() {
       
       const notifyKey = `due-${task.id}-${dueDate.getTime()}`;
       
-      // Due today
-      if (dueDate.getTime() === today.getTime() && !notifiedTasks.tasks[notifyKey]) {
-        showTaskNotification(
-          '📅 Due Today!',
-          `${task.name} is due today`,
-          task,
-          'due-today'
-        );
-        notifiedTasks.tasks[notifyKey] = true;
+      // Due today - notify every 4 hours
+      if (dueDate.getTime() === today.getTime()) {
+        const lastNotified = notifiedTasks.tasks[notifyKey] || 0;
+        const fourHours = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+        
+        if (currentTime - lastNotified >= fourHours) {
+          showTaskNotification(
+            '📅 Due Today!',
+            `${task.name} is due today`,
+            task,
+            'due-today'
+          );
+          notifiedTasks.tasks[notifyKey] = currentTime;
+        }
       }
       
-      // Due tomorrow (1 day before)
-      else if (dueDate.getTime() === tomorrow.getTime() && !notifiedTasks.tasks[notifyKey + '-tomorrow']) {
-        showTaskNotification(
-          '⚠️ Due Tomorrow!',
-          `${task.name} is due tomorrow`,
-          task,
-          'due-tomorrow'
-        );
-        notifiedTasks.tasks[notifyKey + '-tomorrow'] = true;
+      // Due tomorrow - notify every 8 hours
+      else if (dueDate.getTime() === tomorrow.getTime()) {
+        const lastNotified = notifiedTasks.tasks[notifyKey + '-tomorrow'] || 0;
+        const eightHours = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
+        
+        if (currentTime - lastNotified >= eightHours) {
+          showTaskNotification(
+            '⚠️ Due Tomorrow!',
+            `${task.name} is due tomorrow`,
+            task,
+            'due-tomorrow'
+          );
+          notifiedTasks.tasks[notifyKey + '-tomorrow'] = currentTime;
+        }
       }
     }
 
@@ -125,26 +138,36 @@ function checkAndNotify() {
       
       const notifyKey = `do-${task.id}-${doDate.getTime()}`;
       
-      // Do today
-      if (doDate.getTime() === today.getTime() && !notifiedTasks.tasks[notifyKey]) {
-        showTaskNotification(
-          '🎯 Do Today!',
-          `Time to work on: ${task.name}`,
-          task,
-          'do-today'
-        );
-        notifiedTasks.tasks[notifyKey] = true;
+      // Do today - notify every 4 hours
+      if (doDate.getTime() === today.getTime()) {
+        const lastNotified = notifiedTasks.tasks[notifyKey] || 0;
+        const fourHours = 4 * 60 * 60 * 1000;
+        
+        if (currentTime - lastNotified >= fourHours) {
+          showTaskNotification(
+            '🎯 Do Today!',
+            `Time to work on: ${task.name}`,
+            task,
+            'do-today'
+          );
+          notifiedTasks.tasks[notifyKey] = currentTime;
+        }
       }
       
-      // Do tomorrow (1 day before)
-      else if (doDate.getTime() === tomorrow.getTime() && !notifiedTasks.tasks[notifyKey + '-tomorrow']) {
-        showTaskNotification(
-          '📌 Do Tomorrow!',
-          `Prepare for: ${task.name}`,
-          task,
-          'do-tomorrow'
-        );
-        notifiedTasks.tasks[notifyKey + '-tomorrow'] = true;
+      // Do tomorrow - notify every 8 hours
+      else if (doDate.getTime() === tomorrow.getTime()) {
+        const lastNotified = notifiedTasks.tasks[notifyKey + '-tomorrow'] || 0;
+        const eightHours = 8 * 60 * 60 * 1000;
+        
+        if (currentTime - lastNotified >= eightHours) {
+          showTaskNotification(
+            '📌 Do Tomorrow!',
+            `Prepare for: ${task.name}`,
+            task,
+            'do-tomorrow'
+          );
+          notifiedTasks.tasks[notifyKey + '-tomorrow'] = currentTime;
+        }
       }
     }
   });
@@ -378,7 +401,26 @@ function exportTasks() {
   URL.revokeObjectURL(url);
   
   closeDataModal();
-  alert('Tasks exported successfully!');
+  
+  // Show success modal
+  document.getElementById('confirmModalTitle').textContent = 'Export Successful! ✓';
+  document.getElementById('confirmModalMessage').textContent = 'Your tasks have been exported successfully. The backup file has been downloaded to your device.';
+  document.getElementById('confirmModalIcon').innerHTML = `
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  `;
+  
+  const confirmBtn = document.getElementById('confirmModalBtn');
+  confirmBtn.textContent = 'OK';
+  confirmBtn.className = 'confirm-btn archive-btn';
+  confirmBtn.onclick = closeConfirmModal;
+  
+  // Hide cancel button for success message
+  document.getElementById('confirmCancelBtn').style.display = 'none';
+  
+  document.getElementById('confirmOverlay').classList.add('open');
 }
 
 function importTasks() {
@@ -398,16 +440,73 @@ function importTasksFromFile(event) {
         throw new Error('Invalid file format');
       }
       
-      if (confirm(`Import ${data.tasks.length} tasks? This will replace your current tasks.`)) {
+      // Show import confirmation modal
+      document.getElementById('confirmModalTitle').textContent = 'Import Tasks?';
+      document.getElementById('confirmModalMessage').textContent = `This will import ${data.tasks.length} task${data.tasks.length !== 1 ? 's' : ''} and replace your current tasks. Are you sure you want to continue?`;
+      document.getElementById('confirmModalIcon').innerHTML = `
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      `;
+      
+      const confirmBtn = document.getElementById('confirmModalBtn');
+      confirmBtn.textContent = 'Import Tasks';
+      confirmBtn.className = 'confirm-btn archive-btn';
+      confirmBtn.onclick = () => {
         tasks = data.tasks || [];
         archivedTasks = data.archivedTasks || [];
         persistTasks();
         persistArchive();
         closeDataModal();
-        alert('Tasks imported successfully!');
-      }
+        closeConfirmModal();
+        
+        // Show success modal
+        setTimeout(() => {
+          document.getElementById('confirmModalTitle').textContent = 'Import Successful! ✓';
+          document.getElementById('confirmModalMessage').textContent = `${data.tasks.length} task${data.tasks.length !== 1 ? 's' : ''} imported successfully!`;
+          document.getElementById('confirmModalIcon').innerHTML = `
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          `;
+          
+          const btn = document.getElementById('confirmModalBtn');
+          btn.textContent = 'OK';
+          btn.className = 'confirm-btn archive-btn';
+          btn.onclick = closeConfirmModal;
+          
+          document.getElementById('confirmCancelBtn').style.display = 'none';
+          document.getElementById('confirmOverlay').classList.add('open');
+        }, 300);
+      };
+      
+      // Show cancel button for confirmation
+      document.getElementById('confirmCancelBtn').style.display = 'flex';
+      
+      document.getElementById('confirmOverlay').classList.add('open');
+      
     } catch (error) {
-      alert('Error importing tasks: ' + error.message);
+      // Show error modal
+      document.getElementById('confirmModalTitle').textContent = 'Import Error';
+      document.getElementById('confirmModalMessage').textContent = `Failed to import tasks: ${error.message}. Please make sure the file is a valid Task Hub backup.`;
+      document.getElementById('confirmModalIcon').innerHTML = `
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      `;
+      
+      const confirmBtn = document.getElementById('confirmModalBtn');
+      confirmBtn.textContent = 'OK';
+      confirmBtn.className = 'confirm-btn delete-btn';
+      confirmBtn.onclick = closeConfirmModal;
+      
+      document.getElementById('confirmCancelBtn').style.display = 'none';
+      document.getElementById('confirmOverlay').classList.add('open');
     }
   };
   reader.readAsText(file);
@@ -492,10 +591,31 @@ function restoreTask(id) {
 }
 
 function deletePermanent(id) {
-  if (!confirm('Permanently delete this task? This cannot be undone.')) return;
-  archivedTasks = archivedTasks.filter(t => t.id !== id);
-  persistArchive();
-  renderArchive();
+  const task = archivedTasks.find(t => t.id === id);
+  if (!task) return;
+  
+  document.getElementById('confirmModalTitle').textContent = 'Delete Permanently?';
+  document.getElementById('confirmModalMessage').textContent = `Are you sure you want to permanently delete "${task.name}"? This action cannot be undone.`;
+  document.getElementById('confirmModalIcon').innerHTML = `
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+      <path d="M10 11v6M14 11v6"/>
+      <path d="M9 6V4h6v2"/>
+    </svg>
+  `;
+  
+  const confirmBtn = document.getElementById('confirmModalBtn');
+  confirmBtn.textContent = 'Delete Permanently';
+  confirmBtn.className = 'confirm-btn delete-btn';
+  confirmBtn.onclick = () => {
+    archivedTasks = archivedTasks.filter(t => t.id !== id);
+    persistArchive();
+    renderArchive();
+    closeConfirmModal();
+  };
+  
+  document.getElementById('confirmOverlay').classList.add('open');
 }
 
 
@@ -866,16 +986,50 @@ function cycleStatus(id) {
 }
 
 function deleteTask(id) {
-  if (!confirm('Move this task to archive?')) return;
-  const idx = tasks.findIndex(t => t.id === id);
-  if (idx === -1) return;
+  openDeleteConfirmModal(id);
+}
+
+function openDeleteConfirmModal(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
   
-  const task = tasks[idx];
-  archivedTasks.push(task);
-  tasks.splice(idx, 1);
+  document.getElementById('confirmModalTitle').textContent = 'Move to Archive?';
+  document.getElementById('confirmModalMessage').textContent = `Are you sure you want to archive "${task.name}"? You can restore it later from the archive.`;
+  document.getElementById('confirmModalIcon').innerHTML = `
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <polyline points="21 8 21 21 3 21 3 8"/>
+      <rect x="1" y="3" width="22" height="5"/>
+      <line x1="10" y1="12" x2="14" y2="12"/>
+    </svg>
+  `;
   
-  persistTasks();
-  persistArchive();
+  const confirmBtn = document.getElementById('confirmModalBtn');
+  confirmBtn.textContent = 'Move to Archive';
+  confirmBtn.className = 'confirm-btn archive-btn';
+  confirmBtn.onclick = () => {
+    const idx = tasks.findIndex(t => t.id === taskId);
+    if (idx === -1) return;
+    
+    const task = tasks[idx];
+    archivedTasks.push(task);
+    tasks.splice(idx, 1);
+    
+    persistTasks();
+    persistArchive();
+    closeConfirmModal();
+  };
+  
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  // Reset cancel button visibility
+  document.getElementById('confirmCancelBtn').style.display = 'flex';
+}
+
+function handleConfirmOverlayClick(e) {
+  if (e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
 }
 
 
@@ -1020,8 +1174,8 @@ requestNotificationPermission();
 // Check for notifications immediately
 checkAndNotify();
 
-// Check for notifications every 15 minutes
-setInterval(checkAndNotify, 15 * 60 * 1000);
+// Check for notifications every 1 hour (to catch 4hr and 8hr intervals)
+setInterval(checkAndNotify, 60 * 60 * 1000);
 
 // Auto-fullscreen on mobile devices
 if (isMobileDevice()) {
