@@ -10,7 +10,8 @@ let tasks        = [];
 let editId       = null;
 let activePeriod = 'month';
 let hiddenCards  = new Set();
-let defaultSort  = 'due';  // Due Date is the default sort
+let defaultSort  = 'do';  // Do Date is the default sort
+let isFullscreen = false;
 
 const CAT_LABELS = {
   quiz:       'Quiz',
@@ -28,20 +29,20 @@ const STATUS_ORDER = { todo: 0, inprog: 1, done: 2 };
 
 
 // ══════════════════════════════════════════
-// STORAGE
+// STORAGE (using localStorage)
 // ══════════════════════════════════════════
 
-async function loadTasks() {
+function loadTasks() {
   try {
-    const r = await window.storage.get(STORAGE_KEY);
-    if (r && r.value) tasks = JSON.parse(r.value);
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) tasks = JSON.parse(stored);
   } catch (e) {
     tasks = [];
   }
 
   try {
-    const r2 = await window.storage.get(HIDDEN_CARDS_KEY);
-    if (r2 && r2.value) hiddenCards = new Set(JSON.parse(r2.value));
+    const storedHidden = localStorage.getItem(HIDDEN_CARDS_KEY);
+    if (storedHidden) hiddenCards = new Set(JSON.parse(storedHidden));
   } catch (e) {
     hiddenCards = new Set();
   }
@@ -49,19 +50,64 @@ async function loadTasks() {
   renderAll();
 }
 
-async function persistTasks() {
+function persistTasks() {
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify(tasks));
-  } catch (e) { /* in-memory fallback */ }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch (e) { 
+    console.error('Failed to save tasks:', e);
+  }
   renderAll();
 }
 
-async function persistHidden() {
+function persistHidden() {
   try {
-    await window.storage.set(HIDDEN_CARDS_KEY, JSON.stringify([...hiddenCards]));
-  } catch (e) { /* in-memory fallback */ }
+    localStorage.setItem(HIDDEN_CARDS_KEY, JSON.stringify([...hiddenCards]));
+  } catch (e) { 
+    console.error('Failed to save hidden cards:', e);
+  }
   applyHiddenCards();
 }
+
+
+// ══════════════════════════════════════════
+// FULLSCREEN FUNCTIONALITY
+// ══════════════════════════════════════════
+
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+    || window.innerWidth <= 768;
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log('Fullscreen request failed:', err);
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+
+function updateFullscreenButton() {
+  const btn = document.getElementById('fullscreenBtn');
+  if (!btn) return;
+  
+  const icon = btn.querySelector('svg');
+  if (document.fullscreenElement) {
+    // Show exit fullscreen icon
+    icon.innerHTML = `<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>`;
+    btn.title = 'Exit Fullscreen';
+  } else {
+    // Show enter fullscreen icon
+    icon.innerHTML = `<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>`;
+    btn.title = 'Enter Fullscreen';
+  }
+}
+
+// Listen for fullscreen changes
+document.addEventListener('fullscreenchange', updateFullscreenButton);
 
 
 // ══════════════════════════════════════════
@@ -213,7 +259,7 @@ function renderTasks() {
       const db = b.date ? new Date(b.date + 'T' + (b.time || '23:59')) : new Date('9999');
       return da - db;
     }
-    if (sort === 'target') {
+    if (sort === 'do') {
       const ta = a.targetDate ? new Date(a.targetDate + 'T' + (a.targetTime || '23:59')) : new Date('9999');
       const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
       return ta - tb;
@@ -283,7 +329,7 @@ function buildTaskCardHTML(task) {
         <line x1="2"  y1="12" x2="5"  y2="12"/>
         <line x1="19" y1="12" x2="22" y2="12"/>
       </svg>
-      Do Date: ${esc(doTxt)}${doOverdue ? ' &mdash; Overdue' : ''}
+      Do: ${esc(doTxt)}${doOverdue ? ' &mdash; Overdue' : ''}
     </span>` : '';
 
   const noteHTML = task.notes
@@ -515,3 +561,12 @@ document.addEventListener('keydown', e => {
 
 setDateLabel();
 loadTasks();
+
+// Auto-fullscreen on mobile devices
+if (isMobileDevice()) {
+  setTimeout(() => {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log('Auto-fullscreen failed:', err);
+    });
+  }, 500);
+}
