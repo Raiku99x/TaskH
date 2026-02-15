@@ -1,290 +1,1126 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Task Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+/* ══════════════════════════════════════════
+   TASK HUB — styles.css
+   ══════════════════════════════════════════ */
 
-  <!-- ── TOPBAR ── -->
-  <header class="topbar">
-    <div class="topbar-row-1">
-      <div class="logo">Task<span>Hub</span></div>
-      <button class="btn-add" onclick="openModal()">Add Task</button>
-    </div>
-    <div class="topbar-row-2">
-      <button class="topbar-icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-        </svg>
-      </button>
-      <button class="topbar-icon-btn" onclick="openArchive()" title="Archive">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="21 8 21 21 3 21 3 8"/>
-          <rect x="1" y="3" width="22" height="5"/>
-          <line x1="10" y1="12" x2="14" y2="12"/>
-        </svg>
-      </button>
-      <span class="date-label-inline" id="dateLabelInline"></span>
-      <button class="topbar-icon-btn" onclick="refreshPage()" title="Refresh">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 4 23 10 17 10"/>
-          <polyline points="1 20 1 14 7 14"/>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-      </button>
-      <button class="topbar-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon-light">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/>
-          <line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/>
-          <line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon-dark" style="display:none;">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      </button>
-    </div>
-  </header>
+/* ── CSS VARIABLES (LIGHT MODE) ── */
+:root {
+  --bg:        #f5f4f1;
+  --surface:   #ffffff;
+  --surface2:  #f0eeea;
+  --border:    #e2dfd9;
+  --text:      #1c1a17;
+  --text-sub:  #706b62;
+  --accent:    #2b5ce6;
+  --accent-lt: #e8edfb;
+  --green:     #1a9a5c;
+  --green-lt:  #e4f5ed;
+  --amber:     #c47d0e;
+  --amber-lt:  #fef3dc;
+  --red:       #d03b3b;
+  --red-lt:    #fce8e8;
+  --slate:     #5a6474;
+  --slate-lt:  #eef0f3;
+  --radius:    10px;
+  --shadow:    0 2px 12px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  
+  --logo-task-color: #1c1a17;
+  --logo-hub-color: #2b5ce6;
+  --logo-hub-bg: transparent;
+}
 
-  <!-- ── PERIOD FILTER BAR ── -->
-  <div class="period-bar">
-    <button class="period-toggle" id="periodToggle" onclick="togglePeriod()">
-      <span class="toggle-arrow">▲</span> 
-      <span id="periodToggleLabel">Feb – Mar 2026</span> 
-      <span class="toggle-arrow">▲</span>
-    </button>
-    <div class="period-container" id="periodContainer" style="display: none;">
-      <div class="period-buttons">
-        <button class="period-btn" data-period="day" onclick="setPeriod('day')" title="Today">
-          <span class="period-letter">T</span>
-          <span class="period-text">Today</span>
-        </button>
-        <button class="period-btn" data-period="tomorrow" onclick="setPeriod('tomorrow')" title="Tomorrow">
-          <span class="period-letter">2</span>
-          <span class="period-text">Tomorrow</span>
-        </button>
-        <button class="period-btn" data-period="week" onclick="setPeriod('week')" title="This Week">
-          <span class="period-letter">W</span>
-          <span class="period-text">Week</span>
-        </button>
-        <button class="period-btn" data-period="month" onclick="setPeriod('month')" title="This Month">
-          <span class="period-letter">M</span>
-          <span class="period-text">Month</span>
-        </button>
-        <button class="period-btn active" data-period="twomonths" onclick="setPeriod('twomonths')" title="Next 2 Months">
-          <span class="period-letter">O</span>
-          <span class="period-text">2 Months</span>
-        </button>
-        <button class="period-btn" data-period="all" onclick="setPeriod('all')" title="All Time">
-          <span class="period-letter">A</span>
-          <span class="period-text">All Time</span>
-        </button>
-      </div>
-    </div>
-  </div>
+/* ── DARK MODE VARIABLES ── */
+body.dark-mode {
+  --bg:        #1a1a1a;
+  --surface:   #2d2d2d;
+  --surface2:  #3a3a3a;
+  --border:    #4a4a4a;
+  --text:      #e5e5e5;
+  --text-sub:  #a0a0a0;
+  --accent:    #1c1a17;
+  --accent-lt: #2d2d2d;
+  --green:     #22c55e;
+  --green-lt:  #1e3a2a;
+  --amber:     #f59e0b;
+  --amber-lt:  #3a2e1a;
+  --red:       #ef4444;
+  --red-lt:    #3a1a1a;
+  --slate:     #94a3b8;
+  --slate-lt:  #2d3a4a;
+  --shadow:    0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  
+  --logo-task-color: #ffffff;
+  --logo-hub-color: #1c1a17;
+  --logo-hub-bg: #f97316;
+}
 
-  <!-- ── MAIN ── -->
-  <main class="main">
+/* ── RESET ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    <!-- Stat Cards -->
-    <div class="summary-header">
-      <span class="summary-meta" id="summaryMeta"></span>
-      <button class="restore-btn" id="restoreBtn" onclick="restoreAllCards()">Show hidden cards</button>
-    </div>
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background-color 0.3s, color 0.3s;
+}
 
-    <div class="summary-grid" id="summaryGrid">
+/* ════════════════════════════════
+   TOPBAR
+   ════════════════════════════════ */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-      <div class="stat-card total" id="card-total">
-        <button class="hide-card-btn" onclick="hideCard('total')" title="Hide this card">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </button>
-        <div class="stat-label">Total Tasks</div>
-        <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-sub">all categories</div>
-      </div>
+.topbar-row-1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-      <div class="stat-card todo" id="card-todo">
-        <button class="hide-card-btn" onclick="hideCard('todo')" title="Hide this card">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </button>
-        <div class="stat-label">To Do</div>
-        <div class="stat-value" id="statTodo">0</div>
-        <div class="stat-sub">not started</div>
-      </div>
+.topbar-row-2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
-      <div class="stat-card inprog" id="card-inprog">
-        <button class="hide-card-btn" onclick="hideCard('inprog')" title="Hide this card">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </button>
-        <div class="stat-label">In Progress</div>
-        <div class="stat-value" id="statInprog">0</div>
-        <div class="stat-sub">ongoing</div>
-      </div>
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: var(--logo-task-color);
+}
+.logo span { 
+  color: var(--logo-hub-color);
+  background: var(--logo-hub-bg);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
 
-      <div class="stat-card done" id="card-done">
-        <button class="hide-card-btn" onclick="hideCard('done')" title="Hide this card">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </button>
-        <div class="stat-label">Done</div>
-        <div class="stat-value" id="statDone">0</div>
-        <div class="stat-sub">completed</div>
-      </div>
+.topbar-icon-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-sub);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.topbar-icon-btn svg {
+  width: 14px;
+  height: 14px;
+}
+.topbar-icon-btn:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
-      <div class="stat-card" id="card-overdue">
-        <button class="hide-card-btn" onclick="hideCard('overdue')" title="Hide this card">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </button>
-        <div class="stat-label">Overdue</div>
-        <div class="stat-value" id="statOverdue" style="color:var(--red)">0</div>
-        <div class="stat-sub">past due date</div>
-      </div>
+.date-label-inline {
+  font-size: 11px;
+  color: var(--text-sub);
+  font-weight: 500;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 0 8px;
+}
+  margin-left: auto;
+  flex-shrink: 0;
+}
 
-    </div>
+.btn-add {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  flex-shrink: 0 !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.btn-add::before {
+  content: '+' !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+.btn-add:hover {
+  background: var(--surface2) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn-add:active {
+  transform: none !important;
+}
 
-    <!-- Task Section -->
-    <div class="section-header">
-      <div class="section-title">All Tasks</div>
-      <div class="sort-buttons">
-        <button class="sort-btn active" data-sort="due" onclick="setSortMode('due')">DUE</button>
-        <button class="sort-btn" data-sort="do" onclick="setSortMode('do')">DO</button>
-      </div>
-      <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-        </svg>
-        Filters
-      </button>
-      <div class="filters" id="filtersSection">
-        <input class="search-input" type="text" id="searchInput" placeholder="Search tasks..." oninput="renderTasks()" />
-        <select class="filter-select" id="filterCat" onchange="renderTasks()">
-          <option value="">All Categories</option>
-          <option value="quiz">Quiz</option>
-          <option value="project">Project</option>
-          <option value="assignment">Assignment</option>
-          <option value="review">Review</option>
-          <option value="output">Output</option>
-          <option value="online">Online Appt.</option>
-          <option value="facetoface">Face-to-face</option>
-          <option value="other">Other</option>
-        </select>
-        <select class="filter-select" id="filterStatus" onchange="renderTasks()">
-          <option value="">All Status</option>
-          <option value="todo">To Do</option>
-          <option value="inprog">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-      </div>
-    </div>
+/* Dark mode specific button style */
+body.dark-mode .btn-add {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border) !important;
+  box-shadow: none !important;
+}
+body.dark-mode .btn-add:hover {
+  background: var(--surface2) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
+}
 
-    <div class="task-list" id="taskList"></div>
+/* ════════════════════════════════
+   PERIOD FILTER BAR
+   ════════════════════════════════ */
+.period-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
 
-  </main>
+.period-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.period-toggle:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.toggle-arrow {
+  font-size: 10px;
+  display: inline-block;
+}
 
-  <!-- ── ADD / EDIT MODAL ── -->
-  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title" id="modalTitle">Add Task</div>
-        <button class="modal-close" onclick="closeModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
+.period-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+}
 
-      <div class="form-group">
-        <label class="form-label">Task Name *</label>
-        <input class="form-control" id="fName" type="text" placeholder="e.g. Submit Chemistry quiz" />
-      </div>
+.period-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-control" id="fCat">
-          <option value="quiz">Quiz</option>
-          <option value="project">Project</option>
-          <option value="assignment">Assignment</option>
-          <option value="review">Review</option>
-          <option value="output">Output</option>
-          <option value="online">Online Appointment</option>
-          <option value="facetoface">Face-to-face</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+.period-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.period-letter {
+  font-weight: 700;
+  font-size: 14px;
+}
+.period-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.period-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Due Date</label>
-          <input class="form-control" id="fDate" type="date" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Due Time</label>
-          <input class="form-control" id="fTime" type="time" />
-        </div>
-      </div>
+/* ════════════════════════════════
+   MAIN LAYOUT
+   ════════════════════════════════ */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Do Date</label>
-          <input class="form-control" id="fTargetDate" type="date" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Do Time</label>
-          <input class="form-control" id="fTargetTime" type="time" />
-        </div>
-      </div>
+/* ════════════════════════════════
+   STAT CARDS
+   ════════════════════════════════ */
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
 
-      <div class="form-group">
-        <label class="form-label">Status</label>
-        <select class="form-control" id="fStatus">
-          <option value="todo">To Do</option>
-          <option value="inprog">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-      </div>
+.summary-meta {
+  font-size: 12px;
+  color: var(--text-sub);
+}
 
-      <div class="form-group">
-        <label class="form-label">Notes / Description</label>
-        <textarea class="form-control" id="fNotes" placeholder="Any additional details, links, or reminders..."></textarea>
-      </div>
+.restore-btn {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background 0.12s;
+  display: none;
+}
+.restore-btn:hover { background: var(--accent-lt); }
+.restore-btn.visible { display: inline-block; }
 
-      <div class="form-actions">
-        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-        <button class="btn-save"   onclick="saveTask()">Save Task</button>
-      </div>
-    </div>
-  </div>
+.summary-grid {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
 
-  <!-- ── ARCHIVE MODAL ── -->
-  <div class="modal-overlay" id="archiveOverlay" onclick="handleArchiveOverlayClick(event)">
-    <div class="modal archive-modal">
-      <div class="modal-header">
-        <div class="modal-title">Archive</div>
-        <button class="modal-close" onclick="closeArchive()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px 14px;
+  box-shadow: var(--shadow);
+  position: relative;
+  min-width: 150px;
+  flex: 1;
+}
+.stat-card.hidden { display: none; }
 
-      <div class="archive-content" id="archiveContent">
-        <div class="empty-state">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-            <polyline points="21 8 21 21 3 21 3 8"/>
-            <rect x="1" y="3" width="22" height="5"/>
-            <line x1="10" y1="12" x2="14" y2="12"/>
-          </svg>
-          <h3>No archived tasks</h3>
-          <p>Deleted tasks will appear here.</p>
-        </div>
-      </div>
-    </div>
-  </div>
+.hide-card-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.12s;
+}
+.stat-card:hover .hide-card-btn { opacity: 1; }
+.hide-card-btn:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
 
-  <script src="app.js"></script>
-</body>
-</html>
+.stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+  padding-right: 20px;
+}
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-card.total  .stat-value { color: var(--text); }
+.stat-card.todo   .stat-value { color: var(--slate); }
+.stat-card.inprog .stat-value { color: var(--amber); }
+.stat-card.done   .stat-value { color: var(--green); }
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin-top: 4px;
+}
+
+/* ════════════════════════════════
+   SECTION HEADER & FILTERS
+   ════════════════════════════════ */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.sort-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 50px;
+  text-align: center;
+}
+
+.sort-btn:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sort-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+body.dark-mode .sort-btn.active {
+  background: #2b5ce6;
+  border-color: #2b5ce6;
+  color: #fff;
+}
+
+.filter-toggle {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.filter-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.filter-toggle.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.filter-select:focus { border-color: var(--accent); }
+
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  width: 190px;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-sub); }
+
+/* ════════════════════════════════
+   TASK CARDS
+   ════════════════════════════════ */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.15s, transform 0.1s;
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.task-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+.task-card.done-card { opacity: 0.6; }
+
+/* Status dot */
+.status-col { padding-top: 3px; }
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.status-dot:hover { transform: scale(1.25); }
+.status-dot.todo   { color: var(--slate); background: transparent; }
+.status-dot.inprog { color: var(--amber); background: var(--amber); }
+.status-dot.done   { color: var(--green); background: var(--green); }
+
+@media (max-width: 700px) {
+  .status-dot {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Task body */
+.task-body { min-width: 0; }
+
+.task-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.task-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+.task-card.done-card .task-name {
+  text-decoration: line-through;
+  color: var(--text-sub);
+}
+
+/* Category badges */
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cat-quiz       { background: #ede9fe; color: #6d28d9; }
+.cat-project    { background: #dbeafe; color: #1d4ed8; }
+.cat-assignment { background: #fce7f3; color: #be185d; }
+.cat-review     { background: #d1fae5; color: #065f46; }
+.cat-output     { background: #fef9c3; color: #854d0e; }
+.cat-online     { background: #e0f2fe; color: #0369a1; }
+.cat-facetoface { background: #ffedd5; color: #9a3412; }
+.cat-other      { background: var(--slate-lt); color: var(--slate); }
+
+/* Meta row */
+.task-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.meta-item {
+  font-size: 12px;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.overdue-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  display: inline-block;
+  margin-right: 2px;
+  vertical-align: middle;
+}
+
+/* Notes */
+.task-notes {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-sub);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 7px 10px;
+  border-left: 3px solid var(--border);
+  line-height: 1.5;
+}
+
+/* ════════════════════════════════
+   TASK ACTIONS
+   ════════════════════════════════ */
+.task-actions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* Quick status buttons */
+.qs-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 20px;
+  border: 1.5px solid currentColor;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.12s;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.01em;
+}
+.qs-btn.qs-todo   { color: var(--slate); }
+.qs-btn.qs-inprog { color: var(--amber); }
+.qs-btn.qs-done   { color: var(--green); }
+
+.qs-btn.qs-todo:hover   { background: var(--slate-lt); }
+.qs-btn.qs-inprog:hover { background: var(--amber-lt); }
+.qs-btn.qs-done:hover   { background: var(--green-lt); }
+
+.qs-btn.qs-todo.active   { background: var(--slate); color: #fff; border-color: var(--slate); }
+.qs-btn.qs-inprog.active { background: var(--amber); color: #fff; border-color: var(--amber); }
+.qs-btn.qs-done.active   { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* Mobile single cycle button */
+.qs-btn-mobile {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1.5px solid currentColor;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.01em;
+}
+.qs-btn-mobile.qs-todo {
+  background: var(--slate);
+  color: #fff;
+  border-color: var(--slate);
+}
+.qs-btn-mobile.qs-inprog {
+  background: var(--amber);
+  color: #fff;
+  border-color: var(--amber);
+}
+.qs-btn-mobile.qs-done {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.qs-btn-mobile:active {
+  transform: scale(0.95);
+}
+
+.action-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* Icon buttons (edit, delete) */
+.icon-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-sub);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.icon-btn:hover {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.icon-btn.del:hover {
+  background: var(--red-lt);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ════════════════════════════════
+   EMPTY STATE
+   ════════════════════════════════ */
+.empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--text-sub);
+}
+.empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.35;
+}
+.empty-state h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.empty-state p { font-size: 13px; }
+
+/* ════════════════════════════════
+   MODAL
+   ════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(12px) scale(0.98);
+  transition: transform 0.2s;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-overlay.open .modal {
+  transform: translateY(0) scale(1);
+}
+
+.archive-modal {
+  max-width: 700px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-sub);
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.12s;
+}
+.modal-close:hover { background: var(--surface2); }
+
+/* Form elements */
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+}
+
+.form-control {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-control:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-cancel {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btn-cancel:hover { background: var(--surface2); }
+
+.btn-save {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 22px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-save:hover { opacity: 0.88; }
+
+/* ════════════════════════════════
+   ARCHIVE MODAL
+   ════════════════════════════════ */
+.archive-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+}
+
+.archive-task-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.archive-task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.archive-task-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.archive-task-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.archive-meta-text {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.archive-task-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-restore {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.15s;
+}
+.btn-restore:hover { opacity: 0.88; }
+
+.btn-delete-permanent {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-delete-permanent:hover { opacity: 0.88; }
+
+/* ════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════ */
+@media (max-width: 700px) {
+  .topbar {
+    padding: 12px 16px;
+  }
+  
+  .period-bar {
+    padding: 10px 16px;
+  }
+
+  /* Show period buttons as letters only */
+  .period-btn {
+    padding: 6px;
+    min-width: 34px;
+    justify-content: center;
+  }
+  .period-text {
+    display: none;
+  }
+  .period-letter {
+    font-size: 15px;
+  }
+
+  .main { padding: 18px 12px 48px; }
+
+  .form-row { grid-template-columns: 1fr; }
+
+  .task-card { 
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    padding: 12px 14px;
+  }
+  
+  /* Status dot on left, spans both rows */
+  .status-col {
+    grid-row: 1 / 3;
+  }
+  
+  /* Task body takes full width */
+  .task-body {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  
+  /* Actions on second row, full width below task body */
+  .task-actions {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 10px;
+    justify-content: flex-start;
+  }
+  
+  /* Show filter toggle button, hide filters by default */
+  .filter-toggle {
+    display: flex;
+  }
+  .filters {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .filters.open {
+    display: flex;
+  }
+  .search-input {
+    width: 100%;
+  }
+  .filter-select {
+    width: 100%;
+  }
+  
+  /* Mobile task actions: hide 3-button layout, show single cycle button */
+  .task-actions .qs-btn {
+    display: none;
+  }
+  .qs-btn-mobile {
+    display: inline-block;
+  }
+  .task-actions {
+    gap: 6px;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  /* Increase meta item font size for readability */
+  .meta-item {
+    font-size: 13px;
+  }
+  
+  /* Increase task name font size */
+  .task-name {
+    font-size: 16px;
+  }
+  
+  /* Add Task button mobile styling - simple outline style */
+  .btn-add {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    background: transparent !important;
+    border: 1.5px solid var(--border) !important;
+    box-shadow: none !important;
+  }
+  .btn-add::before {
+    content: '+' !important;
+    font-size: 14px !important;
+  }
+  
+  /* Full-screen modal on mobile */
+  .modal {
+    position: fixed;
+    inset: 0;
+    max-width: none;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal {
+    transform: none;
+  }
+}
