@@ -11,7 +11,14 @@
 
   <!-- ── TOPBAR ── -->
   <header class="topbar">
-    <div class="logo">Task<span>Hub</span></div>
+    <div class="topbar-left">
+      <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Enter Fullscreen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+      </button>
+      <div class="logo">Task<span>Hub</span></div>
+    </div>
     <div class="topbar-right">
       <span class="date-label" id="dateLabel"></span>
       <button class="btn-add" onclick="openModal()">+ Add Task</button>
@@ -117,7 +124,7 @@
         </select>
         <select class="filter-select" id="sortBy" onchange="renderTasks()">
           <option value="due" selected>Due Date</option>
-          <option value="target">Target Date</option>
+          <option value="do">Do Date</option>
           <option value="priority">Priority</option>
           <option value="status">Status</option>
           <option value="created">Newest First</option>
