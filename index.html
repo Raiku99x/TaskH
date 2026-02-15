@@ -29,32 +29,14 @@
         </svg>
       </button>
       <span class="date-label-inline" id="dateLabelInline"></span>
-      <button class="topbar-icon-btn" id="dataBtn" onclick="toggleDataMenu()" title="Export/Import Tasks">
+      <button class="topbar-icon-btn" id="dataBtn" onclick="openDataModal()" title="Export/Import Tasks">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
-        <div class="data-menu" id="dataMenu" style="display: none;">
-          <button class="data-menu-item" onclick="exportTasks(); event.stopPropagation();">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Export Tasks
-          </button>
-          <button class="data-menu-item" onclick="document.getElementById('importFile').click(); event.stopPropagation();">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            Import Tasks
-          </button>
-        </div>
       </button>
-      <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importTasks(event)">
+      <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importTasksFromFile(event)">
       <button class="topbar-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon-light">
           <circle cx="12" cy="12" r="5"/>
@@ -302,6 +284,44 @@
           <h3>No archived tasks</h3>
           <p>Deleted tasks will appear here.</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DATA EXPORT/IMPORT MODAL ── -->
+  <div class="modal-overlay" id="dataOverlay" onclick="handleDataOverlayClick(event)">
+    <div class="modal data-modal">
+      <div class="modal-header">
+        <div class="modal-title">Export / Import</div>
+        <button class="modal-close" onclick="closeDataModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="data-modal-content">
+        <button class="data-action-btn import-btn" onclick="importTasks()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <div class="data-action-text">
+            <div class="data-action-title">Import Tasks</div>
+            <div class="data-action-desc">Load tasks from backup file</div>
+          </div>
+        </button>
+
+        <button class="data-action-btn export-btn" onclick="exportTasks()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <div class="data-action-text">
+            <div class="data-action-title">Export Tasks</div>
+            <div class="data-action-desc">Save tasks to backup file</div>
+          </div>
+        </button>
       </div>
     </div>
   </div>
