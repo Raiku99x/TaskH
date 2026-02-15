@@ -155,6 +155,12 @@ body {
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.period-btn svg {
+  flex-shrink: 0;
 }
 .period-btn:hover {
   border-color: var(--accent);
@@ -299,6 +305,31 @@ body {
   font-family: 'Syne', sans-serif;
   font-size: 18px;
   font-weight: 700;
+}
+
+.filter-toggle {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.filter-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.filter-toggle.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .filters {
@@ -510,6 +541,39 @@ body {
 .qs-btn.qs-inprog.active { background: var(--amber); color: #fff; border-color: var(--amber); }
 .qs-btn.qs-done.active   { background: var(--green); color: #fff; border-color: var(--green); }
 
+/* Mobile single cycle button */
+.qs-btn-mobile {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1.5px solid currentColor;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.01em;
+}
+.qs-btn-mobile.qs-todo {
+  background: var(--slate);
+  color: #fff;
+  border-color: var(--slate);
+}
+.qs-btn-mobile.qs-inprog {
+  background: var(--amber);
+  color: #fff;
+  border-color: var(--amber);
+}
+.qs-btn-mobile.qs-done {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.qs-btn-mobile:active {
+  transform: scale(0.95);
+}
+
 .action-divider {
   width: 1px;
   height: 20px;
@@ -709,11 +773,73 @@ textarea.form-control {
 
   .form-row { grid-template-columns: 1fr; }
 
-  .task-card { grid-template-columns: auto 1fr; }
+  .task-card { 
+    grid-template-columns: auto 1fr;
+    padding: 12px 14px;
+  }
 
-  .task-actions { display: none; }
-
-  .search-input { width: 130px; }
-
-  .qs-btn { font-size: 10px; padding: 3px 7px; }
+  /* Hide period button text, show only icons */
+  .period-btn {
+    padding: 6px;
+    min-width: 34px;
+    justify-content: center;
+  }
+  .period-text {
+    display: none;
+  }
+  
+  /* Show filter toggle button, hide filters by default */
+  .filter-toggle {
+    display: flex;
+  }
+  .filters {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .filters.open {
+    display: flex;
+  }
+  .search-input {
+    width: 100%;
+  }
+  .filter-select {
+    width: 100%;
+  }
+  
+  /* Mobile task actions: hide 3-button layout, show single cycle button */
+  .task-actions .qs-btn {
+    display: none;
+  }
+  .qs-btn-mobile {
+    display: inline-block;
+  }
+  .task-actions {
+    gap: 6px;
+  }
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  /* Full-screen modal on mobile */
+  .modal {
+    position: fixed;
+    inset: 0;
+    max-width: none;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal {
+    transform: none;
+  }
 }
