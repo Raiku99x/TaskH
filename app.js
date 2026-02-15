@@ -13,7 +13,7 @@ let archivedTasks = [];
 let editId       = null;
 let activePeriod = 'month';
 let hiddenCards  = new Set();
-let activeSortMode = 'all';  // all, due, or do
+let activeSortMode = 'due';  // due or do (default: due)
 let isFullscreen = false;
 let isDarkMode   = false;
 
@@ -435,7 +435,7 @@ function renderTasks() {
     return true;
   });
 
-  // Sort based on active sort mode
+  // Sort based on active sort mode (due or do)
   if (activeSortMode === 'due') {
     list.sort((a, b) => {
       const da = a.date ? new Date(a.date + 'T' + (a.time || '23:59')) : new Date('9999');
@@ -448,9 +448,6 @@ function renderTasks() {
       const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
       return ta - tb;
     });
-  } else {
-    // 'all' mode - sort by created date (newest first)
-    list.sort((a, b) => b.created - a.created);
   }
 
   const el = document.getElementById('taskList');
