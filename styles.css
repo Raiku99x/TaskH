@@ -1230,45 +1230,52 @@ textarea.form-control {
   .progress-card {
     min-width: 0 !important;
     padding: 12px 10px 10px !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
+    cursor: default !important; /* Remove pointer cursor */
+    pointer-events: none !important; /* Disable clicking */
   }
   
-  /* Hide the stat-label if progress card has one, or add spacing */
-  .progress-card::before {
-    content: '';
-    display: block;
-    height: 0;
+  /* Re-enable pointer events for hide button */
+  .progress-card .hide-card-btn {
+    pointer-events: auto !important;
+  }
+  
+  /* Remove hover and active effects from progress card on mobile */
+  .progress-card:hover {
+    transform: none !important;
+    box-shadow: var(--shadow) !important;
+    border-color: var(--border) !important;
+  }
+  
+  .progress-card.active-filter {
+    border: 1px solid var(--border) !important;
+    background: var(--surface) !important;
   }
   
   .progress-circle-container {
-    width: 100% !important;
-    height: auto !important;
-    margin: 6px 0 4px 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-direction: column !important;
-    position: relative !important;
+    width: 70px !important;
+    height: 70px !important;
+    margin: 0 auto 4px auto !important;
   }
   
   .progress-circle {
-    display: none !important;
+    display: block !important;
   }
   
   .progress-center {
-    position: static !important;
-    transform: none !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
   }
   
   .progress-percent {
-    font-size: 22px !important;
-    margin-bottom: 0 !important;
+    font-size: 16px !important;
+    margin-bottom: 2px !important;
   }
   
   .progress-label {
-    font-size: 10px !important;
-    margin-top: 2px !important;
+    font-size: 8px !important;
+    margin-top: 0 !important;
   }
 
   .form-row { grid-template-columns: 1fr; }
