@@ -1182,6 +1182,64 @@ textarea.form-control {
   }
 
   .main { padding: 18px 12px 48px; }
+  
+  /* Stat cards in 3x2 grid on mobile */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .stat-card {
+    min-width: 0;
+    flex: none;
+    padding: 12px 10px 10px;
+  }
+  
+  .stat-label {
+    font-size: 9px;
+    margin-bottom: 6px;
+  }
+  
+  .stat-value {
+    font-size: 22px;
+  }
+  
+  .stat-sub {
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  
+  .hide-card-btn {
+    width: 20px;
+    height: 20px;
+    top: 6px;
+    right: 6px;
+  }
+  
+  .hide-card-btn svg {
+    width: 11px;
+    height: 11px;
+  }
+  
+  /* Progress card adjustments for grid */
+  .progress-card {
+    min-width: 0;
+    padding: 12px 10px 10px;
+  }
+  
+  .progress-circle-container {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .progress-percent {
+    font-size: 20px;
+  }
+  
+  .progress-label {
+    font-size: 9px;
+  }
 
   .form-row { grid-template-columns: 1fr; }
 
@@ -1285,10 +1343,7 @@ textarea.form-control {
 
 /* ════════════════════════════════
    PROGRESS CIRCLE CARD
-   ════════════════════════════════ 
-   
-   ADD THIS TO THE END OF YOUR styles.css FILE
-*/
+   ════════════════════════════════ */
 
 .progress-card {
   min-width: 170px;
@@ -1339,24 +1394,4 @@ textarea.form-control {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-sub);
-}
-
-/* Mobile responsive styles for progress card */
-@media (max-width: 700px) {
-  .progress-card {
-    min-width: 140px;
-  }
-  
-  .progress-circle-container {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .progress-percent {
-    font-size: 24px;
-  }
-  
-  .progress-label {
-    font-size: 10px;
-  }
 }
