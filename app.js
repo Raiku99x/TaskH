@@ -1061,20 +1061,35 @@ function renderTasks() {
     }
   }
 
-  // Sort based on active sort mode (due or do)
+  // Separate done and not-done tasks
+  const doneTasks = list.filter(t => t.status === 'done');
+  const notDoneTasks = list.filter(t => t.status !== 'done');
+  
+  // Sort not-done tasks based on active sort mode (due or do)
   if (activeSortMode === 'due') {
-    list.sort((a, b) => {
+    notDoneTasks.sort((a, b) => {
       const da = a.date ? new Date(a.date + 'T' + (a.time || '23:59')) : new Date('9999');
       const db = b.date ? new Date(b.date + 'T' + (b.time || '23:59')) : new Date('9999');
       return da - db;
     });
   } else if (activeSortMode === 'do') {
-    list.sort((a, b) => {
+    notDoneTasks.sort((a, b) => {
       const ta = a.targetDate ? new Date(a.targetDate + 'T' + (a.targetTime || '23:59')) : new Date('9999');
       const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
       return ta - tb;
     });
   }
+  
+  // Sort done tasks - newest done tasks at the bottom
+  // We'll use created timestamp, with most recent at the end
+  doneTasks.sort((a, b) => {
+    const timeA = a.created || 0;
+    const timeB = b.created || 0;
+    return timeA - timeB; // Oldest first, newest last (at bottom)
+  });
+  
+  // Combine: not-done tasks first, then done tasks (newest done at very bottom)
+  list = [...notDoneTasks, ...doneTasks];
 
   const el = document.getElementById('taskList');
 
@@ -1144,7 +1159,7 @@ function buildTaskCardHTML(task) {
     : '';
 
   return `
-  <div class="task-card ${task.status === 'done' ? 'done-card' : ''}">
+  <div class="task-card ${task.status === 'done' ? 'done-card' : ''}" data-task-id="${task.id}">
 
     <div class="status-col">
       <div class="status-dot ${task.status}"
@@ -1208,8 +1223,60 @@ function buildTaskCardHTML(task) {
 function setStatus(id, status) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
-  task.status = status;
-  persistTasks();
+  
+  // If marking as done, trigger animation
+  if (status === 'done' && task.status !== 'done') {
+    playCompletionAnimation(id, () => {
+      task.status = status;
+      persistTasks();
+    });
+  } else {
+    task.status = status;
+    persistTasks();
+  }
+}
+
+function playCompletionAnimation(taskId, callback) {
+  const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+  if (!taskCard) {
+    callback();
+    return;
+  }
+  
+  // Add completing class
+  taskCard.classList.add('task-completing');
+  
+  // Create checkmark overlay
+  const checkmark = document.createElement('div');
+  checkmark.className = 'completion-checkmark';
+  checkmark.innerHTML = `
+    <svg viewBox="0 0 24 24">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  `;
+  taskCard.appendChild(checkmark);
+  
+  // Create confetti particles
+  const colors = ['var(--green)', 'var(--amber)', 'var(--accent)', 'var(--red)'];
+  const cardRect = taskCard.getBoundingClientRect();
+  
+  for (let i = 0; i < 8; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti-particle';
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.left = `${50 + (Math.random() - 0.5) * 60}%`;
+    confetti.style.top = '50%';
+    confetti.style.animationDelay = `${Math.random() * 0.1}s`;
+    taskCard.appendChild(confetti);
+  }
+  
+  // Clean up and execute callback after animation
+  setTimeout(() => {
+    checkmark.remove();
+    document.querySelectorAll('.confetti-particle').forEach(p => p.remove());
+    taskCard.classList.remove('task-completing');
+    callback();
+  }, 300);
 }
 
 function cycleStatus(id) {
