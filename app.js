@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   TASK HUB — app.js (with Browser Notifications)
+   TASK HUB — app.js (with Browser Notifications & Stat Card Filters)
    ══════════════════════════════════════════ */
 
 // ── CONSTANTS & STATE ─────────────────────────────────────────
@@ -15,6 +15,7 @@ let editId       = null;
 let activePeriod = 'twomonths';
 let hiddenCards  = new Set();
 let activeSortMode = 'due';  // due or do (default: due)
+let activeStatFilter = null; // null, 'total', 'todo', 'inprog', 'done', 'overdue'
 let isFullscreen = false;
 let isDarkMode   = false;
 let notifiedTasks = {}; // Track which tasks we've already notified about with timestamps
@@ -368,6 +369,36 @@ function refreshPage() {
 
 
 // ══════════════════════════════════════════
+// STAT CARD FILTERS
+// ══════════════════════════════════════════
+
+function setStatFilter(filter) {
+  // If clicking same filter, toggle it off
+  if (activeStatFilter === filter) {
+    activeStatFilter = null;
+  } else {
+    activeStatFilter = filter;
+  }
+  
+  // Update visual state of cards
+  updateStatCardVisuals();
+  
+  // Re-render tasks with the filter
+  renderTasks();
+}
+
+function updateStatCardVisuals() {
+  const cards = ['total', 'todo', 'inprog', 'done', 'overdue'];
+  cards.forEach(id => {
+    const card = document.getElementById('card-' + id);
+    if (card) {
+      card.classList.toggle('active-filter', activeStatFilter === id);
+    }
+  });
+}
+
+
+// ══════════════════════════════════════════
 // EXPORT / IMPORT TASKS
 // ══════════════════════════════════════════
 
@@ -716,7 +747,11 @@ function setPeriod(period) {
 // HIDE / RESTORE STAT CARDS
 // ══════════════════════════════════════════
 
-function hideCard(id) {
+function hideCard(id, event) {
+  // Stop propagation so the card click handler doesn't fire
+  if (event) {
+    event.stopPropagation();
+  }
   hiddenCards.add(id);
   persistHidden();
 }
@@ -736,6 +771,9 @@ function applyHiddenCards() {
 
   const restoreBtn = document.getElementById('restoreBtn');
   restoreBtn.classList.toggle('visible', hiddenCards.size > 0);
+  
+  // Update active filter visuals
+  updateStatCardVisuals();
 }
 
 
@@ -826,6 +864,21 @@ function renderTasks() {
     return true;
   });
 
+  // Apply stat card filter
+  if (activeStatFilter) {
+    if (activeStatFilter === 'total') {
+      // Show all tasks (no additional filter)
+    } else if (activeStatFilter === 'todo') {
+      list = list.filter(t => t.status === 'todo');
+    } else if (activeStatFilter === 'inprog') {
+      list = list.filter(t => t.status === 'inprog');
+    } else if (activeStatFilter === 'done') {
+      list = list.filter(t => t.status === 'done');
+    } else if (activeStatFilter === 'overdue') {
+      list = list.filter(isOverdue);
+    }
+  }
+
   // Sort based on active sort mode (due or do)
   if (activeSortMode === 'due') {
     list.sort((a, b) => {
@@ -850,9 +903,9 @@ function renderTasks() {
           <rect x="3" y="3" width="18" height="18" rx="3"/>
           <path d="M9 12h6M12 9v6"/>
         </svg>
-        <h3>${tasks.length ? 'No tasks in this period' : 'Nothing here yet'}</h3>
+        <h3>${tasks.length ? 'No tasks match these filters' : 'Nothing here yet'}</h3>
         <p>${tasks.length
-          ? 'Try a different time range or clear your filters.'
+          ? 'Try adjusting your filters or time range.'
           : 'Click "+ Add Task" to get started.'}</p>
       </div>`;
     return;
