@@ -677,6 +677,7 @@ body.dark-mode .sort-btn.active {
 .cat-output     { background: #fef9c3; color: #854d0e; }
 .cat-online     { background: #e0f2fe; color: #0369a1; }
 .cat-facetoface { background: #ffedd5; color: #9a3412; }
+.cat-learning   { background: #f3e8ff; color: #7e22ce; }
 .cat-other      { background: var(--slate-lt); color: var(--slate); }
 
 /* Meta row */
@@ -1204,7 +1205,7 @@ textarea.form-control {
 }
 
 .task-completing {
-  animation: taskComplete 0.3s ease-out;
+  animation: taskComplete 0.6s ease-out;
   position: relative;
 }
 
@@ -1221,7 +1222,7 @@ textarea.form-control {
   align-items: center;
   justify-content: center;
   z-index: 10;
-  animation: checkmarkPop 0.3s ease-out forwards;
+  animation: checkmarkPop 0.6s ease-out forwards;
   pointer-events: none;
 }
 
@@ -1238,13 +1239,13 @@ textarea.form-control {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  animation: confettiPop 0.5s ease-out forwards;
+  animation: confettiPop 0.8s ease-out forwards;
   pointer-events: none;
   z-index: 9;
 }
 
 .task-moving-down {
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.6s ease-out;
 }
 
 @keyframes slideDown {
