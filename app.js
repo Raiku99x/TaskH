@@ -29,8 +29,9 @@ const CAT_LABELS = {
   assignment: 'Assignment',
   review:     'Review',
   output:     'Output',
-  online:     'Online Appt.',
-  facetoface: 'Face-to-face',
+  online:     'Online Class',
+  facetoface: 'F2F Class',
+  learning:   'Learning Task',
   other:      'Other',
 };
 
@@ -1276,15 +1277,25 @@ function playCompletionAnimation(taskId, callback) {
     document.querySelectorAll('.confetti-particle').forEach(p => p.remove());
     taskCard.classList.remove('task-completing');
     callback();
-  }, 300);
+  }, 600); // Changed from 300 to 600ms (0.6 seconds)
 }
 
 function cycleStatus(id) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
   const cycle = { todo: 'inprog', inprog: 'done', done: 'todo' };
-  task.status = cycle[task.status];
-  persistTasks();
+  const newStatus = cycle[task.status];
+  
+  // If cycling to done, trigger animation
+  if (newStatus === 'done' && task.status !== 'done') {
+    playCompletionAnimation(id, () => {
+      task.status = newStatus;
+      persistTasks();
+    });
+  } else {
+    task.status = newStatus;
+    persistTasks();
+  }
 }
 
 function deleteTask(id) {
