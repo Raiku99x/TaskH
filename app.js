@@ -1,10 +1,7 @@
 /* ══════════════════════════════════════════
    TASK HUB — app.js (with Browser Notifications & Stat Card Filters + Progress Card)
-   
-   FIXED: updateProgressCircle now properly displays all segments
    ══════════════════════════════════════════ */
 
-// ── CONSTANTS & STATE ─────────────────────────────────────────
 const STORAGE_KEY      = 'taskhub-v2-tasks';
 const HIDDEN_CARDS_KEY = 'taskhub-v2-hidden';
 const ARCHIVE_KEY      = 'taskhub-v2-archive';
@@ -16,12 +13,12 @@ let archivedTasks = [];
 let editId       = null;
 let activePeriod = 'twomonths';
 let hiddenCards  = new Set();
-let activeSortMode = 'due';  // due or do (default: due)
-let activeStatFilter = null; // null, 'total', 'todo', 'inprog', 'done', 'overdue', 'progress'
-let progressCycleMode = 'done'; // done, todo, inprog, overdue
+let activeSortMode = 'due';
+let activeStatFilter = null;
+let progressCycleMode = 'done';
 let isFullscreen = false;
 let isDarkMode   = false;
-let notifiedTasks = {}; // Track which tasks we've already notified about with timestamps
+let notifiedTasks = {};
 
 const CAT_LABELS = {
   quiz:       'Quiz',
@@ -44,16 +41,10 @@ const STATUS_ORDER = { todo: 0, inprog: 1, done: 2 };
 // ══════════════════════════════════════════
 
 function requestNotificationPermission() {
-  if (!('Notification' in window)) {
-    console.log('Browser does not support notifications');
-    return;
-  }
-
+  if (!('Notification' in window)) return;
   if (Notification.permission === 'default') {
     Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        showWelcomeNotification();
-      }
+      if (permission === 'granted') showWelcomeNotification();
     });
   }
 }
@@ -67,24 +58,16 @@ function showWelcomeNotification() {
 }
 
 function checkAndNotify() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    return;
-  }
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
   const now = new Date();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
-  
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  // Load previously notified tasks
   loadNotifiedTasks();
-
-  // Get today's date string for tracking
   const todayStr = today.toISOString().split('T')[0];
-
-  // Reset notified tasks if it's a new day
   if (notifiedTasks.date !== todayStr) {
     notifiedTasks = { date: todayStr, tasks: {} };
     persistNotifiedTasks();
@@ -93,84 +76,43 @@ function checkAndNotify() {
   const currentTime = now.getTime();
 
   tasks.forEach(task => {
-    // Skip completed tasks
     if (task.status === 'done') return;
 
-    // Check Due Date
     if (task.date) {
       const dueDate = new Date(task.date + 'T00:00:00');
       dueDate.setHours(0, 0, 0, 0);
-      
       const notifyKey = `due-${task.id}-${dueDate.getTime()}`;
-      
-      // Due today - notify every 4 hours
+
       if (dueDate.getTime() === today.getTime()) {
         const lastNotified = notifiedTasks.tasks[notifyKey] || 0;
-        const fourHours = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
-        
-        if (currentTime - lastNotified >= fourHours) {
-          showTaskNotification(
-            '📅 Due Today!',
-            `${task.name} is due today`,
-            task,
-            'due-today'
-          );
+        if (currentTime - lastNotified >= 4 * 60 * 60 * 1000) {
+          showTaskNotification('📅 Due Today!', `${task.name} is due today`, task, 'due-today');
           notifiedTasks.tasks[notifyKey] = currentTime;
         }
-      }
-      
-      // Due tomorrow - notify every 8 hours
-      else if (dueDate.getTime() === tomorrow.getTime()) {
+      } else if (dueDate.getTime() === tomorrow.getTime()) {
         const lastNotified = notifiedTasks.tasks[notifyKey + '-tomorrow'] || 0;
-        const eightHours = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-        
-        if (currentTime - lastNotified >= eightHours) {
-          showTaskNotification(
-            '⚠️ Due Tomorrow!',
-            `${task.name} is due tomorrow`,
-            task,
-            'due-tomorrow'
-          );
+        if (currentTime - lastNotified >= 8 * 60 * 60 * 1000) {
+          showTaskNotification('⚠️ Due Tomorrow!', `${task.name} is due tomorrow`, task, 'due-tomorrow');
           notifiedTasks.tasks[notifyKey + '-tomorrow'] = currentTime;
         }
       }
     }
 
-    // Check Do Date
     if (task.targetDate) {
       const doDate = new Date(task.targetDate + 'T00:00:00');
       doDate.setHours(0, 0, 0, 0);
-      
       const notifyKey = `do-${task.id}-${doDate.getTime()}`;
-      
-      // Do today - notify every 4 hours
+
       if (doDate.getTime() === today.getTime()) {
         const lastNotified = notifiedTasks.tasks[notifyKey] || 0;
-        const fourHours = 4 * 60 * 60 * 1000;
-        
-        if (currentTime - lastNotified >= fourHours) {
-          showTaskNotification(
-            '🎯 Do Today!',
-            `Time to work on: ${task.name}`,
-            task,
-            'do-today'
-          );
+        if (currentTime - lastNotified >= 4 * 60 * 60 * 1000) {
+          showTaskNotification('🎯 Do Today!', `Time to work on: ${task.name}`, task, 'do-today');
           notifiedTasks.tasks[notifyKey] = currentTime;
         }
-      }
-      
-      // Do tomorrow - notify every 8 hours
-      else if (doDate.getTime() === tomorrow.getTime()) {
+      } else if (doDate.getTime() === tomorrow.getTime()) {
         const lastNotified = notifiedTasks.tasks[notifyKey + '-tomorrow'] || 0;
-        const eightHours = 8 * 60 * 60 * 1000;
-        
-        if (currentTime - lastNotified >= eightHours) {
-          showTaskNotification(
-            '📌 Do Tomorrow!',
-            `Prepare for: ${task.name}`,
-            task,
-            'do-tomorrow'
-          );
+        if (currentTime - lastNotified >= 8 * 60 * 60 * 1000) {
+          showTaskNotification('📌 Do Tomorrow!', `Prepare for: ${task.name}`, task, 'do-tomorrow');
           notifiedTasks.tasks[notifyKey + '-tomorrow'] = currentTime;
         }
       }
@@ -182,165 +124,94 @@ function checkAndNotify() {
 
 function showTaskNotification(title, body, task, tag) {
   const notification = new Notification(title, {
-    body: body,
-    icon: '📋',
-    tag: tag + '-' + task.id,
-    requireInteraction: false,
-    silent: false
+    body, icon: '📋', tag: tag + '-' + task.id, requireInteraction: false, silent: false
   });
-
-  notification.onclick = function() {
-    window.focus();
-    notification.close();
-    // Open the task for editing
-    openModal(task.id);
-  };
+  notification.onclick = function() { window.focus(); notification.close(); openModal(task.id); };
 }
 
 function loadNotifiedTasks() {
   try {
     const stored = localStorage.getItem(NOTIFIED_KEY);
-    if (stored) {
-      notifiedTasks = JSON.parse(stored);
-    } else {
-      notifiedTasks = { date: new Date().toISOString().split('T')[0], tasks: {} };
-    }
+    notifiedTasks = stored ? JSON.parse(stored) : { date: new Date().toISOString().split('T')[0], tasks: {} };
   } catch (e) {
     notifiedTasks = { date: new Date().toISOString().split('T')[0], tasks: {} };
   }
 }
 
 function persistNotifiedTasks() {
-  try {
-    localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notifiedTasks));
-  } catch (e) {
-    console.error('Failed to save notified tasks:', e);
-  }
+  try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notifiedTasks)); } catch (e) {}
 }
 
 
 // ══════════════════════════════════════════
-// STORAGE (using localStorage)
+// STORAGE
 // ══════════════════════════════════════════
 
 function loadTasks() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) tasks = JSON.parse(s); } catch (e) { tasks = []; }
+  try { const s = localStorage.getItem(HIDDEN_CARDS_KEY); if (s) hiddenCards = new Set(JSON.parse(s)); } catch (e) { hiddenCards = new Set(); }
+  try { const s = localStorage.getItem(ARCHIVE_KEY); if (s) archivedTasks = JSON.parse(s); } catch (e) { archivedTasks = []; }
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) tasks = JSON.parse(stored);
-  } catch (e) {
-    tasks = [];
-  }
-
-  try {
-    const storedHidden = localStorage.getItem(HIDDEN_CARDS_KEY);
-    if (storedHidden) hiddenCards = new Set(JSON.parse(storedHidden));
-  } catch (e) {
-    hiddenCards = new Set();
-  }
-
-  try {
-    const storedArchive = localStorage.getItem(ARCHIVE_KEY);
-    if (storedArchive) archivedTasks = JSON.parse(storedArchive);
-  } catch (e) {
-    archivedTasks = [];
-  }
-
-  try {
-    const storedTheme = localStorage.getItem(THEME_KEY);
-    if (storedTheme) {
-      isDarkMode = storedTheme === 'dark';
-      if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-        updateThemeIcon();
-      }
-    }
-  } catch (e) {
-    isDarkMode = false;
-  }
-
+    const s = localStorage.getItem(THEME_KEY);
+    if (s) { isDarkMode = s === 'dark'; if (isDarkMode) { document.body.classList.add('dark-mode'); updateThemeIcon(); } }
+  } catch (e) { isDarkMode = false; }
   renderAll();
 }
 
 function persistTasks() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  } catch (e) { 
-    console.error('Failed to save tasks:', e);
-  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch (e) {}
   renderAll();
-  // Check notifications when tasks change
   checkAndNotify();
 }
 
 function persistHidden() {
-  try {
-    localStorage.setItem(HIDDEN_CARDS_KEY, JSON.stringify([...hiddenCards]));
-  } catch (e) { 
-    console.error('Failed to save hidden cards:', e);
-  }
+  try { localStorage.setItem(HIDDEN_CARDS_KEY, JSON.stringify([...hiddenCards])); } catch (e) {}
   applyHiddenCards();
 }
 
 function persistArchive() {
-  try {
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedTasks));
-  } catch (e) {
-    console.error('Failed to save archive:', e);
-  }
+  try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archivedTasks)); } catch (e) {}
 }
 
 function persistTheme() {
-  try {
-    localStorage.setItem(THEME_KEY, isDarkMode ? 'dark' : 'light');
-  } catch (e) {
-    console.error('Failed to save theme:', e);
-  }
+  try { localStorage.setItem(THEME_KEY, isDarkMode ? 'dark' : 'light'); } catch (e) {}
 }
 
 
 // ══════════════════════════════════════════
-// FULLSCREEN FUNCTIONALITY
+// FULLSCREEN
 // ══════════════════════════════════════════
 
 function isMobileDevice() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-    || window.innerWidth <= 768;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 }
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.log('Fullscreen request failed:', err);
-    });
+    document.documentElement.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
   } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
+    if (document.exitFullscreen) document.exitFullscreen();
   }
 }
 
 function updateFullscreenButton() {
   const btn = document.getElementById('fullscreenBtn');
   if (!btn) return;
-  
   const icon = btn.querySelector('svg');
   if (document.fullscreenElement) {
-    // Show exit fullscreen icon
     icon.innerHTML = `<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>`;
     btn.title = 'Exit Fullscreen';
   } else {
-    // Show enter fullscreen icon
     icon.innerHTML = `<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>`;
     btn.title = 'Enter Fullscreen';
   }
 }
 
-// Listen for fullscreen changes
 document.addEventListener('fullscreenchange', updateFullscreenButton);
 
 
 // ══════════════════════════════════════════
-// THEME TOGGLE
+// THEME
 // ══════════════════════════════════════════
 
 function toggleTheme() {
@@ -352,24 +223,12 @@ function toggleTheme() {
 
 function updateThemeIcon() {
   const lightIcon = document.querySelector('.theme-icon-light');
-  const darkIcon = document.querySelector('.theme-icon-dark');
-  if (isDarkMode) {
-    lightIcon.style.display = 'none';
-    darkIcon.style.display = 'block';
-  } else {
-    lightIcon.style.display = 'block';
-    darkIcon.style.display = 'none';
-  }
+  const darkIcon  = document.querySelector('.theme-icon-dark');
+  if (isDarkMode) { lightIcon.style.display = 'none'; darkIcon.style.display = 'block'; }
+  else            { lightIcon.style.display = 'block'; darkIcon.style.display = 'none'; }
 }
 
-
-// ══════════════════════════════════════════
-// REFRESH PAGE
-// ══════════════════════════════════════════
-
-function refreshPage() {
-  location.reload();
-}
+function refreshPage() { location.reload(); }
 
 
 // ══════════════════════════════════════════
@@ -377,343 +236,184 @@ function refreshPage() {
 // ══════════════════════════════════════════
 
 function setStatFilter(filter) {
-  // Special handling for progress card - cycle through modes
   if (filter === 'progress') {
     if (activeStatFilter === 'progress') {
-      // Cycle to next mode
       const modes = ['done', 'todo', 'inprog', 'overdue'];
-      const currentIndex = modes.indexOf(progressCycleMode);
-      progressCycleMode = modes[(currentIndex + 1) % modes.length];
+      progressCycleMode = modes[(modes.indexOf(progressCycleMode) + 1) % modes.length];
     } else {
-      // First click - activate with done mode
       activeStatFilter = 'progress';
       progressCycleMode = 'done';
     }
   } else {
-    // If clicking same filter, toggle it off
-    if (activeStatFilter === filter) {
-      activeStatFilter = null;
-    } else {
-      activeStatFilter = filter;
-    }
+    activeStatFilter = (activeStatFilter === filter) ? null : filter;
   }
-  
-  // Update visual state of cards
   updateStatCardVisuals();
-  
-  // Re-render tasks with the filter
   renderTasks();
 }
 
 function updateStatCardVisuals() {
-  const cards = ['total', 'todo', 'inprog', 'done', 'overdue', 'progress'];
-  cards.forEach(id => {
+  ['total','todo','inprog','done','overdue','progress'].forEach(id => {
     const card = document.getElementById('card-' + id);
-    if (card) {
-      card.classList.toggle('active-filter', activeStatFilter === id);
-    }
+    if (card) card.classList.toggle('active-filter', activeStatFilter === id);
   });
-  
-  // Update progress card display based on cycle mode
   updateProgressCard();
 }
 
 
 // ══════════════════════════════════════════
-// PROGRESS CARD - FIXED TO SHOW ALL SEGMENTS
+// PROGRESS CARD
 // ══════════════════════════════════════════
 
 function updateProgressCard() {
   const periodTasks = tasks.filter(taskInPeriod);
   const total = periodTasks.length;
-  
+
   if (total === 0) {
     document.getElementById('progressPercent').textContent = '0%';
     document.getElementById('progressLabel').textContent = 'No Tasks';
     updateProgressCircle(0, 0, 0, 0);
     return;
   }
-  
-  const doneCount = periodTasks.filter(t => t.status === 'done').length;
-  const todoCount = periodTasks.filter(t => t.status === 'todo').length;
-  const inprogCount = periodTasks.filter(t => t.status === 'inprog').length;
+
+  const doneCount    = periodTasks.filter(t => t.status === 'done').length;
+  const todoCount    = periodTasks.filter(t => t.status === 'todo').length;
+  const inprogCount  = periodTasks.filter(t => t.status === 'inprog').length;
   const overdueCount = periodTasks.filter(isOverdue).length;
-  
-  const donePercent = Math.round((doneCount / total) * 100);
-  const todoPercent = Math.round((todoCount / total) * 100);
-  const inprogPercent = Math.round((inprogCount / total) * 100);
+
+  const donePercent    = Math.round((doneCount    / total) * 100);
+  const todoPercent    = Math.round((todoCount    / total) * 100);
+  const inprogPercent  = Math.round((inprogCount  / total) * 100);
   const overduePercent = Math.round((overdueCount / total) * 100);
-  
-  // Update circle visualization
+
   updateProgressCircle(donePercent, inprogPercent, todoPercent, overduePercent);
-  
-  // Update center text based on cycle mode
+
   const percentEl = document.getElementById('progressPercent');
-  const labelEl = document.getElementById('progressLabel');
-  
-  if (progressCycleMode === 'done') {
-    percentEl.textContent = donePercent + '%';
-    percentEl.style.color = 'var(--green)';
-    labelEl.textContent = 'completed';
-  } else if (progressCycleMode === 'todo') {
-    percentEl.textContent = todoPercent + '%';
-    percentEl.style.color = 'var(--slate)';
-    labelEl.textContent = 'to do';
-  } else if (progressCycleMode === 'inprog') {
-    percentEl.textContent = inprogPercent + '%';
-    percentEl.style.color = 'var(--amber)';
-    labelEl.textContent = 'in progress';
-  } else if (progressCycleMode === 'overdue') {
-    percentEl.textContent = overduePercent + '%';
-    percentEl.style.color = 'var(--red)';
-    labelEl.textContent = 'overdue';
-  }
+  const labelEl   = document.getElementById('progressLabel');
+
+  if (progressCycleMode === 'done')    { percentEl.textContent = donePercent + '%';    percentEl.style.color = 'var(--green)';  labelEl.textContent = 'completed'; }
+  else if (progressCycleMode === 'todo')   { percentEl.textContent = todoPercent + '%';    percentEl.style.color = 'var(--slate)';  labelEl.textContent = 'to do'; }
+  else if (progressCycleMode === 'inprog') { percentEl.textContent = inprogPercent + '%';  percentEl.style.color = 'var(--amber)';  labelEl.textContent = 'in progress'; }
+  else if (progressCycleMode === 'overdue'){ percentEl.textContent = overduePercent + '%'; percentEl.style.color = 'var(--red)';    labelEl.textContent = 'overdue'; }
 }
 
 function updateProgressCircle(donePercent, inprogPercent, todoPercent, overduePercent) {
   const svg = document.getElementById('progressCircle');
   if (!svg) return;
-  
-  const radius = 45;
-  const centerX = 50;
-  const centerY = 50;
-  const circumference = 2 * Math.PI * radius;
-  
-  // Clear existing paths
+  const radius = 45, centerX = 50, centerY = 50;
   svg.innerHTML = '';
-  
-  // Create background circle (light gray)
+
   const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  bgCircle.setAttribute('cx', centerX);
-  bgCircle.setAttribute('cy', centerY);
-  bgCircle.setAttribute('r', radius);
-  bgCircle.setAttribute('fill', 'none');
-  bgCircle.setAttribute('stroke', 'var(--surface2)');
-  bgCircle.setAttribute('stroke-width', '8');
+  bgCircle.setAttribute('cx', centerX); bgCircle.setAttribute('cy', centerY);
+  bgCircle.setAttribute('r', radius); bgCircle.setAttribute('fill', 'none');
+  bgCircle.setAttribute('stroke', 'var(--surface2)'); bgCircle.setAttribute('stroke-width', '8');
   svg.appendChild(bgCircle);
-  
-  // FIXED: Calculate actual percentages and draw segments
-  // Draw segments in order: done, inprog, todo, overdue
-  // Each segment starts where the previous one ended
-  
+
   let currentPercent = 0;
-  
-  // Segment 1: Done (green)
-  if (donePercent > 0) {
-    const path = createSegmentPath(currentPercent, donePercent, radius, centerX, centerY);
-    path.setAttribute('stroke', 'var(--green)');
-    path.setAttribute('stroke-width', '8');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('fill', 'none');
-    svg.appendChild(path);
-    currentPercent += donePercent;
-  }
-  
-  // Segment 2: In Progress (amber)
-  if (inprogPercent > 0) {
-    const path = createSegmentPath(currentPercent, inprogPercent, radius, centerX, centerY);
-    path.setAttribute('stroke', 'var(--amber)');
-    path.setAttribute('stroke-width', '8');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('fill', 'none');
-    svg.appendChild(path);
-    currentPercent += inprogPercent;
-  }
-  
-  // Segment 3: To Do (slate)
-  if (todoPercent > 0) {
-    const path = createSegmentPath(currentPercent, todoPercent, radius, centerX, centerY);
-    path.setAttribute('stroke', 'var(--slate)');
-    path.setAttribute('stroke-width', '8');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('fill', 'none');
-    svg.appendChild(path);
-    currentPercent += todoPercent;
-  }
-  
-  // Segment 4: Overdue (red)
-  if (overduePercent > 0) {
-    const path = createSegmentPath(currentPercent, overduePercent, radius, centerX, centerY);
-    path.setAttribute('stroke', 'var(--red)');
-    path.setAttribute('stroke-width', '8');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('fill', 'none');
-    svg.appendChild(path);
-  }
+  [
+    [donePercent,    'var(--green)'],
+    [inprogPercent,  'var(--amber)'],
+    [todoPercent,    'var(--slate)'],
+    [overduePercent, 'var(--red)'],
+  ].forEach(([pct, color]) => {
+    if (pct > 0) {
+      const path = createSegmentPath(currentPercent, pct, radius, centerX, centerY);
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '8');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('fill', 'none');
+      svg.appendChild(path);
+      currentPercent += pct;
+    }
+  });
 }
 
-// FIXED: Helper function to create an arc path for a segment
 function createSegmentPath(startPercent, segmentPercent, radius, centerX, centerY) {
-  // Convert percentages to angles (starting from top: -90 degrees)
   const startAngle = (startPercent / 100) * 360 - 90;
-  const endAngle = ((startPercent + segmentPercent) / 100) * 360 - 90;
-  
-  // Convert to radians
-  const startRad = (startAngle * Math.PI) / 180;
-  const endRad = (endAngle * Math.PI) / 180;
-  
-  // Calculate start and end points
+  const endAngle   = ((startPercent + segmentPercent) / 100) * 360 - 90;
+  const startRad   = (startAngle * Math.PI) / 180;
+  const endRad     = (endAngle   * Math.PI) / 180;
   const x1 = centerX + radius * Math.cos(startRad);
   const y1 = centerY + radius * Math.sin(startRad);
   const x2 = centerX + radius * Math.cos(endRad);
   const y2 = centerY + radius * Math.sin(endRad);
-  
-  // Determine if we need a large arc (for segments > 50%)
   const largeArc = segmentPercent > 50 ? 1 : 0;
-  
-  // Create the arc path
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const pathData = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
-  path.setAttribute('d', pathData);
-  
+  path.setAttribute('d', `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`);
   return path;
 }
 
 
 // ══════════════════════════════════════════
-// EXPORT / IMPORT TASKS
+// EXPORT / IMPORT
 // ══════════════════════════════════════════
 
-function openDataModal() {
-  document.getElementById('dataOverlay').classList.add('open');
-}
-
-function closeDataModal() {
-  document.getElementById('dataOverlay').classList.remove('open');
-}
-
-function handleDataOverlayClick(e) {
-  if (e.target === document.getElementById('dataOverlay')) closeDataModal();
-}
+function openDataModal()  { document.getElementById('dataOverlay').classList.add('open'); }
+function closeDataModal() { document.getElementById('dataOverlay').classList.remove('open'); }
+function handleDataOverlayClick(e) { if (e.target === document.getElementById('dataOverlay')) closeDataModal(); }
 
 function exportTasks() {
-  const data = {
-    tasks: tasks,
-    archivedTasks: archivedTasks,
-    exportDate: new Date().toISOString(),
-    version: 'v2'
-  };
-  
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const data = { tasks, archivedTasks, exportDate: new Date().toISOString(), version: 'v2' };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
   a.href = url;
   a.download = `taskhub-backup-${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  
   closeDataModal();
-  
-  // Show success modal
-  document.getElementById('confirmModalTitle').textContent = 'Export Successful! ✓';
-  document.getElementById('confirmModalMessage').textContent = 'Your tasks have been exported successfully. The backup file has been downloaded to your device.';
-  document.getElementById('confirmModalIcon').innerHTML = `
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-      <polyline points="22 4 12 14.01 9 11.01"/>
-    </svg>
-  `;
-  
-  const confirmBtn = document.getElementById('confirmModalBtn');
-  confirmBtn.textContent = 'OK';
-  confirmBtn.className = 'confirm-btn archive-btn';
-  confirmBtn.onclick = closeConfirmModal;
-  
-  // Hide cancel button for success message
-  document.getElementById('confirmCancelBtn').style.display = 'none';
-  
-  document.getElementById('confirmOverlay').classList.add('open');
+
+  showConfirmSuccess('Export Successful! ✓', 'Your tasks have been exported successfully.');
 }
 
-function importTasks() {
-  document.getElementById('importFile').click();
-}
+function importTasks() { document.getElementById('importFile').click(); }
 
 function importTasksFromFile(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
       const data = JSON.parse(e.target.result);
-      
-      if (!data.tasks) {
-        throw new Error('Invalid file format');
-      }
-      
-      // Show import confirmation modal
+      if (!data.tasks) throw new Error('Invalid file format');
+
       document.getElementById('confirmModalTitle').textContent = 'Import Tasks?';
-      document.getElementById('confirmModalMessage').textContent = `This will import ${data.tasks.length} task${data.tasks.length !== 1 ? 's' : ''} and replace your current tasks. Are you sure you want to continue?`;
-      document.getElementById('confirmModalIcon').innerHTML = `
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      `;
-      
+      document.getElementById('confirmModalMessage').textContent = `This will import ${data.tasks.length} task${data.tasks.length !== 1 ? 's' : ''} and replace your current tasks. Are you sure?`;
+      document.getElementById('confirmModalIcon').innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+
       const confirmBtn = document.getElementById('confirmModalBtn');
       confirmBtn.textContent = 'Import Tasks';
       confirmBtn.className = 'confirm-btn archive-btn';
       confirmBtn.onclick = () => {
         tasks = data.tasks || [];
         archivedTasks = data.archivedTasks || [];
-        persistTasks();
-        persistArchive();
-        closeDataModal();
-        closeConfirmModal();
-        
-        // Show success modal
-        setTimeout(() => {
-          document.getElementById('confirmModalTitle').textContent = 'Import Successful! ✓';
-          document.getElementById('confirmModalMessage').textContent = `${data.tasks.length} task${data.tasks.length !== 1 ? 's' : ''} imported successfully!`;
-          document.getElementById('confirmModalIcon').innerHTML = `
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-          `;
-          
-          const btn = document.getElementById('confirmModalBtn');
-          btn.textContent = 'OK';
-          btn.className = 'confirm-btn archive-btn';
-          btn.onclick = closeConfirmModal;
-          
-          document.getElementById('confirmCancelBtn').style.display = 'none';
-          document.getElementById('confirmOverlay').classList.add('open');
-        }, 300);
+        persistTasks(); persistArchive(); closeDataModal(); closeConfirmModal();
+        setTimeout(() => showConfirmSuccess('Import Successful! ✓', `${data.tasks.length} task${data.tasks.length !== 1 ? 's' : ''} imported!`), 300);
       };
-      
-      // Show cancel button for confirmation
+
       document.getElementById('confirmCancelBtn').style.display = 'flex';
-      
       document.getElementById('confirmOverlay').classList.add('open');
-      
     } catch (error) {
-      // Show error modal
       document.getElementById('confirmModalTitle').textContent = 'Import Error';
-      document.getElementById('confirmModalMessage').textContent = `Failed to import tasks: ${error.message}. Please make sure the file is a valid Task Hub backup.`;
-      document.getElementById('confirmModalIcon').innerHTML = `
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="15" y1="9" x2="9" y2="15"/>
-          <line x1="9" y1="9" x2="15" y2="15"/>
-        </svg>
-      `;
-      
+      document.getElementById('confirmModalMessage').textContent = `Failed to import: ${error.message}`;
+      document.getElementById('confirmModalIcon').innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
       const confirmBtn = document.getElementById('confirmModalBtn');
-      confirmBtn.textContent = 'OK';
-      confirmBtn.className = 'confirm-btn delete-btn';
-      confirmBtn.onclick = closeConfirmModal;
-      
+      confirmBtn.textContent = 'OK'; confirmBtn.className = 'confirm-btn delete-btn'; confirmBtn.onclick = closeConfirmModal;
       document.getElementById('confirmCancelBtn').style.display = 'none';
       document.getElementById('confirmOverlay').classList.add('open');
     }
   };
   reader.readAsText(file);
-  event.target.value = ''; // Reset file input
+  event.target.value = '';
+}
+
+function showConfirmSuccess(title, message) {
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalMessage').textContent = message;
+  document.getElementById('confirmModalIcon').innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  const confirmBtn = document.getElementById('confirmModalBtn');
+  confirmBtn.textContent = 'OK'; confirmBtn.className = 'confirm-btn archive-btn'; confirmBtn.onclick = closeConfirmModal;
+  document.getElementById('confirmCancelBtn').style.display = 'none';
+  document.getElementById('confirmOverlay').classList.add('open');
 }
 
 
@@ -721,36 +421,16 @@ function importTasksFromFile(event) {
 // ARCHIVE
 // ══════════════════════════════════════════
 
-function openArchive() {
-  renderArchive();
-  document.getElementById('archiveOverlay').classList.add('open');
-}
-
-function closeArchive() {
-  document.getElementById('archiveOverlay').classList.remove('open');
-}
-
-function handleArchiveOverlayClick(e) {
-  if (e.target === document.getElementById('archiveOverlay')) closeArchive();
-}
+function openArchive()  { renderArchive(); document.getElementById('archiveOverlay').classList.add('open'); }
+function closeArchive() { document.getElementById('archiveOverlay').classList.remove('open'); }
+function handleArchiveOverlayClick(e) { if (e.target === document.getElementById('archiveOverlay')) closeArchive(); }
 
 function renderArchive() {
   const el = document.getElementById('archiveContent');
-  
   if (!archivedTasks.length) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-          <polyline points="21 8 21 21 3 21 3 8"/>
-          <rect x="1" y="3" width="22" height="5"/>
-          <line x1="10" y1="12" x2="14" y2="12"/>
-        </svg>
-        <h3>No archived tasks</h3>
-        <p>Deleted tasks will appear here.</p>
-      </div>`;
+    el.innerHTML = `<div class="empty-state"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg><h3>No archived tasks</h3><p>Deleted tasks will appear here.</p></div>`;
     return;
   }
-
   el.innerHTML = archivedTasks.map(task => `
     <div class="archive-task-card">
       <div class="archive-task-info">
@@ -761,63 +441,29 @@ function renderArchive() {
         </div>
       </div>
       <div class="archive-task-actions">
-        <button class="btn-restore" onclick="restoreTask('${task.id}')" title="Restore">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 14 4 9 9 4"/>
-            <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
-          </svg>
-          Restore
-        </button>
-        <button class="btn-delete-permanent" onclick="deletePermanent('${task.id}')" title="Delete permanently">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-            <path d="M10 11v6M14 11v6"/>
-          </svg>
-        </button>
+        <button class="btn-restore" onclick="restoreTask('${task.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg> Restore</button>
+        <button class="btn-delete-permanent" onclick="deletePermanent('${task.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function restoreTask(id) {
   const idx = archivedTasks.findIndex(t => t.id === id);
   if (idx === -1) return;
-  
-  const task = archivedTasks[idx];
-  tasks.push(task);
+  tasks.push(archivedTasks[idx]);
   archivedTasks.splice(idx, 1);
-  
-  persistTasks();
-  persistArchive();
-  renderArchive();
+  persistTasks(); persistArchive(); renderArchive();
 }
 
 function deletePermanent(id) {
   const task = archivedTasks.find(t => t.id === id);
   if (!task) return;
-  
   document.getElementById('confirmModalTitle').textContent = 'Delete Permanently?';
-  document.getElementById('confirmModalMessage').textContent = `Are you sure you want to permanently delete "${task.name}"? This action cannot be undone.`;
-  document.getElementById('confirmModalIcon').innerHTML = `
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5">
-      <polyline points="3 6 5 6 21 6"/>
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-      <path d="M10 11v6M14 11v6"/>
-      <path d="M9 6V4h6v2"/>
-    </svg>
-  `;
-  
+  document.getElementById('confirmModalMessage').textContent = `Permanently delete "${task.name}"? This cannot be undone.`;
+  document.getElementById('confirmModalIcon').innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
   const confirmBtn = document.getElementById('confirmModalBtn');
-  confirmBtn.textContent = 'Delete Permanently';
-  confirmBtn.className = 'confirm-btn delete-btn';
-  confirmBtn.onclick = () => {
-    archivedTasks = archivedTasks.filter(t => t.id !== id);
-    persistArchive();
-    renderArchive();
-    closeConfirmModal();
-  };
-  
+  confirmBtn.textContent = 'Delete Permanently'; confirmBtn.className = 'confirm-btn delete-btn';
+  confirmBtn.onclick = () => { archivedTasks = archivedTasks.filter(t => t.id !== id); persistArchive(); renderArchive(); closeConfirmModal(); };
   document.getElementById('confirmOverlay').classList.add('open');
 }
 
@@ -828,66 +474,29 @@ function deletePermanent(id) {
 
 function getPeriodRange(period) {
   const now   = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(now);
-  end.setHours(23, 59, 59, 999);
+  const start = new Date(now); start.setHours(0, 0, 0, 0);
+  const end   = new Date(now); end.setHours(23, 59, 59, 999);
 
-  if (period === 'day') {
-    return { start, end, label: 'Today' };
-  }
-
+  if (period === 'day')      return { start, end, label: 'Today' };
   if (period === 'tomorrow') {
-    start.setDate(start.getDate() + 1);
-    end.setDate(end.getDate() + 1);
-    return {
-      start,
-      end,
-      label: start.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-    };
+    start.setDate(start.getDate() + 1); end.setDate(end.getDate() + 1);
+    return { start, end, label: start.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) };
   }
-
   if (period === 'week') {
-    const dayOfWeek = start.getDay();
-    start.setDate(start.getDate() - dayOfWeek);
-    end.setDate(end.getDate() + (6 - new Date().getDay()));
-    end.setHours(23, 59, 59, 999);
-    return {
-      start,
-      end,
-      label: formatShort(start) + ' – ' + formatShort(end),
-    };
+    start.setDate(start.getDate() - start.getDay());
+    end.setDate(end.getDate() + (6 - new Date().getDay())); end.setHours(23, 59, 59, 999);
+    return { start, end, label: formatShort(start) + ' – ' + formatShort(end) };
   }
-
   if (period === 'month') {
-    start.setDate(1);
-    end.setMonth(end.getMonth() + 1, 0);
-    end.setHours(23, 59, 59, 999);
-    return {
-      start,
-      end,
-      label: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-    };
+    start.setDate(1); end.setMonth(end.getMonth() + 1, 0); end.setHours(23, 59, 59, 999);
+    return { start, end, label: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) };
   }
-
   if (period === 'twomonths') {
-    // Current month start
-    start.setDate(1);
-    // Next month end
-    end.setMonth(end.getMonth() + 2, 0);
-    end.setHours(23, 59, 59, 999);
-    const currentMonth = now.toLocaleDateString('en-US', { month: 'short' });
-    const nextMonthDate = new Date(now);
-    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-    const nextMonth = nextMonthDate.toLocaleDateString('en-US', { month: 'short' });
-    return {
-      start,
-      end,
-      label: currentMonth + ' – ' + nextMonth + ' ' + now.getFullYear(),
-    };
+    start.setDate(1); end.setMonth(end.getMonth() + 2, 0); end.setHours(23, 59, 59, 999);
+    const cur  = now.toLocaleDateString('en-US', { month: 'short' });
+    const next = new Date(now); next.setMonth(next.getMonth() + 1);
+    return { start, end, label: cur + ' – ' + next.toLocaleDateString('en-US', { month: 'short' }) + ' ' + now.getFullYear() };
   }
-
-  // all time
   return { start: null, end: null, label: 'All time' };
 }
 
@@ -901,16 +510,8 @@ function taskInPeriod(task) {
 
 function setPeriod(period) {
   activePeriod = period;
-
-  document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.period === period);
-  });
-
-  const { label } = getPeriodRange(period);
-  
-  // Update the toggle button label
-  document.getElementById('periodToggleLabel').textContent = label;
-
+  document.querySelectorAll('.period-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.period === period));
+  document.getElementById('periodToggleLabel').textContent = getPeriodRange(period).label;
   renderAll();
 }
 
@@ -920,42 +521,29 @@ function setPeriod(period) {
 // ══════════════════════════════════════════
 
 function hideCard(id, event) {
-  // Stop propagation so the card click handler doesn't fire
-  if (event) {
-    event.stopPropagation();
-  }
-  hiddenCards.add(id);
-  persistHidden();
+  if (event) event.stopPropagation();
+  hiddenCards.add(id); persistHidden();
 }
 
-function restoreAllCards() {
-  hiddenCards.clear();
-  persistHidden();
-}
+function restoreAllCards() { hiddenCards.clear(); persistHidden(); }
 
 function applyHiddenCards() {
-  const ids = ['total', 'todo', 'inprog', 'done', 'overdue', 'progress'];
-
-  ids.forEach(id => {
+  ['total','todo','inprog','done','overdue','progress'].forEach(id => {
     const el = document.getElementById('card-' + id);
     if (el) el.classList.toggle('hidden', hiddenCards.has(id));
   });
-
-  const restoreBtn = document.getElementById('restoreBtn');
-  restoreBtn.classList.toggle('visible', hiddenCards.size > 0);
-  
-  // Update active filter visuals
+  document.getElementById('restoreBtn').classList.toggle('visible', hiddenCards.size > 0);
   updateStatCardVisuals();
 }
 
 
 // ══════════════════════════════════════════
-// FILTER TOGGLE (MOBILE)
+// FILTER TOGGLE (ALL SCREEN SIZES)
 // ══════════════════════════════════════════
 
 function toggleFilters() {
   const filtersSection = document.getElementById('filtersSection');
-  const toggleBtn = document.getElementById('filterToggle');
+  const toggleBtn      = document.getElementById('filterToggle');
   filtersSection.classList.toggle('open');
   toggleBtn.classList.toggle('active');
 }
@@ -967,32 +555,21 @@ function toggleFilters() {
 
 function togglePeriod() {
   const periodContainer = document.getElementById('periodContainer');
-  const toggleBtn = document.getElementById('periodToggle');
-  const isVisible = periodContainer.style.display !== 'none';
-  
+  const toggleBtn       = document.getElementById('periodToggle');
+  const isVisible       = periodContainer.style.display !== 'none';
   periodContainer.style.display = isVisible ? 'none' : 'flex';
   toggleBtn.classList.toggle('expanded', !isVisible);
-  
-  // Update arrows
-  const arrows = toggleBtn.querySelectorAll('.toggle-arrow');
-  arrows.forEach(arrow => {
-    arrow.textContent = isVisible ? '▲' : '▼';
-  });
+  toggleBtn.querySelectorAll('.toggle-arrow').forEach(a => a.textContent = isVisible ? '▼' : '▲');
 }
 
 
 // ══════════════════════════════════════════
-// SORT MODE BUTTONS
+// SORT MODE
 // ══════════════════════════════════════════
 
 function setSortMode(mode) {
   activeSortMode = mode;
-  
-  // Update button states
-  document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sort === mode);
-  });
-  
+  document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.sort === mode));
   renderTasks();
 }
 
@@ -1006,11 +583,8 @@ function renderAll() {
   renderStats(periodTasks);
   renderTasks();
   applyHiddenCards();
-
-  const { label } = getPeriodRange(activePeriod);
-  document.getElementById('periodToggleLabel').textContent = label;
-  document.getElementById('summaryMeta').textContent =
-    periodTasks.length + ' task' + (periodTasks.length !== 1 ? 's' : '') + ' in this period';
+  document.getElementById('periodToggleLabel').textContent = getPeriodRange(activePeriod).label;
+  document.getElementById('summaryMeta').textContent = periodTasks.length + ' task' + (periodTasks.length !== 1 ? 's' : '') + ' in this period';
 }
 
 function renderStats(periodTasks) {
@@ -1019,7 +593,7 @@ function renderStats(periodTasks) {
   document.getElementById('statInprog').textContent  = periodTasks.filter(t => t.status === 'inprog').length;
   document.getElementById('statDone').textContent    = periodTasks.filter(t => t.status === 'done').length;
   document.getElementById('statOverdue').textContent = periodTasks.filter(isOverdue).length;
-  updateProgressCard(); // UPDATE PROGRESS CARD
+  updateProgressCard();
 }
 
 function renderTasks() {
@@ -1031,84 +605,49 @@ function renderTasks() {
     if (!taskInPeriod(task))                          return false;
     if (fCat && task.category !== fCat)               return false;
     if (fSt  && task.status   !== fSt)                return false;
-    if (search &&
-        !task.name.toLowerCase().includes(search) &&
-        !(task.notes || '').toLowerCase().includes(search)) return false;
+    if (search && !task.name.toLowerCase().includes(search) && !(task.notes || '').toLowerCase().includes(search)) return false;
     return true;
   });
 
   // Apply stat card filter
   if (activeStatFilter) {
-    if (activeStatFilter === 'total') {
-      // Show all tasks (no additional filter)
-    } else if (activeStatFilter === 'todo') {
-      list = list.filter(t => t.status === 'todo');
-    } else if (activeStatFilter === 'inprog') {
-      list = list.filter(t => t.status === 'inprog');
-    } else if (activeStatFilter === 'done') {
-      list = list.filter(t => t.status === 'done');
-    } else if (activeStatFilter === 'overdue') {
-      list = list.filter(isOverdue);
-    } else if (activeStatFilter === 'progress') {
-      if (progressCycleMode === 'done') {
-        list = list.filter(t => t.status === 'done');
-      } else if (progressCycleMode === 'todo') {
-        list = list.filter(t => t.status === 'todo');
-      } else if (progressCycleMode === 'inprog') {
-        list = list.filter(t => t.status === 'inprog');
-      } else if (progressCycleMode === 'overdue') {
-        list = list.filter(isOverdue);
-      }
+    if      (activeStatFilter === 'todo')    list = list.filter(t => t.status === 'todo');
+    else if (activeStatFilter === 'inprog')  list = list.filter(t => t.status === 'inprog');
+    else if (activeStatFilter === 'done')    list = list.filter(t => t.status === 'done');
+    else if (activeStatFilter === 'overdue') list = list.filter(isOverdue);
+    else if (activeStatFilter === 'progress') {
+      if      (progressCycleMode === 'done')    list = list.filter(t => t.status === 'done');
+      else if (progressCycleMode === 'todo')    list = list.filter(t => t.status === 'todo');
+      else if (progressCycleMode === 'inprog')  list = list.filter(t => t.status === 'inprog');
+      else if (progressCycleMode === 'overdue') list = list.filter(isOverdue);
     }
   }
 
-  // Separate done and not-done tasks
-  const doneTasks = list.filter(t => t.status === 'done');
+  const doneTasks    = list.filter(t => t.status === 'done');
   const notDoneTasks = list.filter(t => t.status !== 'done');
-  
-  // Sort not-done tasks based on active sort mode (due or do)
+
   if (activeSortMode === 'due') {
     notDoneTasks.sort((a, b) => {
       const da = a.date ? new Date(a.date + 'T' + (a.time || '23:59')) : new Date('9999');
       const db = b.date ? new Date(b.date + 'T' + (b.time || '23:59')) : new Date('9999');
       return da - db;
     });
-  } else if (activeSortMode === 'do') {
+  } else {
     notDoneTasks.sort((a, b) => {
       const ta = a.targetDate ? new Date(a.targetDate + 'T' + (a.targetTime || '23:59')) : new Date('9999');
       const tb = b.targetDate ? new Date(b.targetDate + 'T' + (b.targetTime || '23:59')) : new Date('9999');
       return ta - tb;
     });
   }
-  
-  // Sort done tasks - newest done tasks at the bottom
-  // We'll use created timestamp, with most recent at the end
-  doneTasks.sort((a, b) => {
-    const timeA = a.created || 0;
-    const timeB = b.created || 0;
-    return timeA - timeB; // Oldest first, newest last (at bottom)
-  });
-  
-  // Combine: not-done tasks first, then done tasks (newest done at very bottom)
+
+  doneTasks.sort((a, b) => (a.created || 0) - (b.created || 0));
   list = [...notDoneTasks, ...doneTasks];
 
   const el = document.getElementById('taskList');
-
   if (!list.length) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-          <rect x="3" y="3" width="18" height="18" rx="3"/>
-          <path d="M9 12h6M12 9v6"/>
-        </svg>
-        <h3>${tasks.length ? 'No tasks match these filters' : 'Nothing here yet'}</h3>
-        <p>${tasks.length
-          ? 'Try adjusting your filters or time range.'
-          : 'Click "+ Add Task" to get started.'}</p>
-      </div>`;
+    el.innerHTML = `<div class="empty-state"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/></svg><h3>${tasks.length ? 'No tasks match these filters' : 'Nothing here yet'}</h3><p>${tasks.length ? 'Try adjusting your filters or time range.' : 'Click "+ Add Task" to get started.'}</p></div>`;
     return;
   }
-
   el.innerHTML = list.map(buildTaskCardHTML).join('');
 }
 
@@ -1121,98 +660,53 @@ function buildTaskCardHTML(task) {
   const over    = isOverdue(task);
   const dueTxt  = formatDue(task.date, task.time);
   const stLabel = { todo: 'To Do', inprog: 'In Progress', done: 'Done' }[task.status];
-
-  // Do Date: show only if different from due date
-  const doTxt      = formatDue(task.targetDate, task.targetTime);
-  const showDo     = doTxt && doTxt !== dueTxt;
-  const doOverdue  = task.targetDate && task.status !== 'done'
-    ? new Date(task.targetDate + 'T' + (task.targetTime || '23:59')) < new Date()
-    : false;
+  const doTxt   = formatDue(task.targetDate, task.targetTime);
+  const showDo  = doTxt && doTxt !== dueTxt;
+  const doOverdue = task.targetDate && task.status !== 'done'
+    ? new Date(task.targetDate + 'T' + (task.targetTime || '23:59')) < new Date() : false;
 
   const dueMeta = dueTxt ? `
     <span class="meta-item" style="${over ? 'color:var(--red)' : ''}">
       ${over ? '<span class="overdue-dot"></span>' : ''}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8"  y1="2" x2="8"  y2="6"/>
-        <line x1="3"  y1="10" x2="21" y2="10"/>
-      </svg>
-      Due: ${esc(dueTxt)}${over ? ' &mdash; Overdue' : ''}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Due: ${esc(dueTxt)}${over ? ' — Overdue' : ''}
     </span>` : '';
 
   const doMeta = showDo ? `
     <span class="meta-item" style="${doOverdue ? 'color:var(--red)' : ''}">
       ${doOverdue ? '<span class="overdue-dot"></span>' : ''}
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <circle cx="12" cy="12" r="4"/>
-        <line x1="12" y1="2"  x2="12" y2="5"/>
-        <line x1="12" y1="19" x2="12" y2="22"/>
-        <line x1="2"  y1="12" x2="5"  y2="12"/>
-        <line x1="19" y1="12" x2="22" y2="12"/>
-      </svg>
-      Do: ${esc(doTxt)}${doOverdue ? ' &mdash; Overdue' : ''}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+      Do: ${esc(doTxt)}${doOverdue ? ' — Overdue' : ''}
     </span>` : '';
 
-  const noteHTML = task.notes
-    ? `<div class="task-notes">${esc(task.notes)}</div>`
-    : '';
+  const noteHTML = task.notes ? `<div class="task-notes">${esc(task.notes)}</div>` : '';
 
   return `
   <div class="task-card ${task.status === 'done' ? 'done-card' : ''}" data-task-id="${task.id}">
-
     <div class="status-col">
-      <div class="status-dot ${task.status}"
-           title="Click to cycle status"
-           onclick="cycleStatus('${task.id}')"></div>
+      <div class="status-dot ${task.status}" title="Click to cycle status" onclick="cycleStatus('${task.id}')"></div>
     </div>
-
     <div class="task-body">
       <div class="task-top">
         <span class="task-name">${esc(task.name)}</span>
         <span class="badge cat-${task.category}">${CAT_LABELS[task.category]}</span>
       </div>
-      <div class="task-meta">
-        ${dueMeta}
-        ${doMeta}
-      </div>
+      <div class="task-meta">${dueMeta}${doMeta}</div>
       ${noteHTML}
     </div>
-
     <div class="task-actions">
-      <button class="qs-btn qs-todo   ${task.status === 'todo'   ? 'active' : ''}"
-              onclick="setStatus('${task.id}', 'todo')"
-              title="Set To Do">Todo</button>
-      <button class="qs-btn qs-inprog ${task.status === 'inprog' ? 'active' : ''}"
-              onclick="setStatus('${task.id}', 'inprog')"
-              title="Set In Progress">In Progress</button>
-      <button class="qs-btn qs-done   ${task.status === 'done'   ? 'active' : ''}"
-              onclick="setStatus('${task.id}', 'done')"
-              title="Set Done">Done</button>
-
-      <button class="qs-btn-mobile qs-${task.status}"
-              onclick="cycleStatus('${task.id}')"
-              title="Click to change status">${stLabel}</button>
-
+      <button class="qs-btn qs-todo   ${task.status === 'todo'   ? 'active' : ''}" onclick="setStatus('${task.id}', 'todo')"   title="Set To Do">Todo</button>
+      <button class="qs-btn qs-inprog ${task.status === 'inprog' ? 'active' : ''}" onclick="setStatus('${task.id}', 'inprog')" title="Set In Progress">In Progress</button>
+      <button class="qs-btn qs-done   ${task.status === 'done'   ? 'active' : ''}" onclick="setStatus('${task.id}', 'done')"   title="Set Done">Done</button>
+      <button class="qs-btn-mobile qs-${task.status}" onclick="cycleStatus('${task.id}')" title="Change status">${stLabel}</button>
       <div class="action-divider"></div>
-
       <button class="icon-btn" title="Edit task" onclick="openModal('${task.id}')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
       <button class="icon-btn del" title="Delete task" onclick="deleteTask('${task.id}')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4h6v2"/>
-        </svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
     </div>
-
   </div>`;
 }
 
@@ -1224,126 +718,75 @@ function buildTaskCardHTML(task) {
 function setStatus(id, status) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
-  
-  // If marking as done, trigger animation
   if (status === 'done' && task.status !== 'done') {
-    playCompletionAnimation(id, () => {
-      task.status = status;
-      persistTasks();
-    });
+    playCompletionAnimation(id, () => { task.status = status; persistTasks(); });
   } else {
-    task.status = status;
-    persistTasks();
+    task.status = status; persistTasks();
   }
 }
 
 function playCompletionAnimation(taskId, callback) {
   const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
-  if (!taskCard) {
-    callback();
-    return;
-  }
-  
-  // Add completing class
+  if (!taskCard) { callback(); return; }
   taskCard.classList.add('task-completing');
-  
-  // Create checkmark overlay
   const checkmark = document.createElement('div');
   checkmark.className = 'completion-checkmark';
-  checkmark.innerHTML = `
-    <svg viewBox="0 0 24 24">
-      <polyline points="20 6 9 17 4 12"/>
-    </svg>
-  `;
+  checkmark.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
   taskCard.appendChild(checkmark);
-  
-  // Create confetti particles
   const colors = ['var(--green)', 'var(--amber)', 'var(--accent)', 'var(--red)'];
-  const cardRect = taskCard.getBoundingClientRect();
-  
   for (let i = 0; i < 8; i++) {
-    const confetti = document.createElement('div');
-    confetti.className = 'confetti-particle';
-    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-    confetti.style.left = `${50 + (Math.random() - 0.5) * 60}%`;
-    confetti.style.top = '50%';
-    confetti.style.animationDelay = `${Math.random() * 0.1}s`;
-    taskCard.appendChild(confetti);
+    const c = document.createElement('div');
+    c.className = 'confetti-particle';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.left = `${50 + (Math.random() - 0.5) * 60}%`;
+    c.style.top = '50%';
+    c.style.animationDelay = `${Math.random() * 0.1}s`;
+    taskCard.appendChild(c);
   }
-  
-  // Clean up and execute callback after animation
   setTimeout(() => {
     checkmark.remove();
     document.querySelectorAll('.confetti-particle').forEach(p => p.remove());
     taskCard.classList.remove('task-completing');
     callback();
-  }, 600); // Changed from 300 to 600ms (0.6 seconds)
+  }, 600);
 }
 
 function cycleStatus(id) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
-  const cycle = { todo: 'inprog', inprog: 'done', done: 'todo' };
-  const newStatus = cycle[task.status];
-  
-  // If cycling to done, trigger animation
+  const newStatus = { todo: 'inprog', inprog: 'done', done: 'todo' }[task.status];
   if (newStatus === 'done' && task.status !== 'done') {
-    playCompletionAnimation(id, () => {
-      task.status = newStatus;
-      persistTasks();
-    });
+    playCompletionAnimation(id, () => { task.status = newStatus; persistTasks(); });
   } else {
-    task.status = newStatus;
-    persistTasks();
+    task.status = newStatus; persistTasks();
   }
 }
 
-function deleteTask(id) {
-  openDeleteConfirmModal(id);
-}
+function deleteTask(id) { openDeleteConfirmModal(id); }
 
 function openDeleteConfirmModal(taskId) {
   const task = tasks.find(t => t.id === taskId);
   if (!task) return;
-  
   document.getElementById('confirmModalTitle').textContent = 'Move to Archive?';
-  document.getElementById('confirmModalMessage').textContent = `Are you sure you want to archive "${task.name}"? You can restore it later from the archive.`;
-  document.getElementById('confirmModalIcon').innerHTML = `
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <polyline points="21 8 21 21 3 21 3 8"/>
-      <rect x="1" y="3" width="22" height="5"/>
-      <line x1="10" y1="12" x2="14" y2="12"/>
-    </svg>
-  `;
-  
+  document.getElementById('confirmModalMessage').textContent = `Archive "${task.name}"? You can restore it later.`;
+  document.getElementById('confirmModalIcon').innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`;
   const confirmBtn = document.getElementById('confirmModalBtn');
-  confirmBtn.textContent = 'Move to Archive';
-  confirmBtn.className = 'confirm-btn archive-btn';
+  confirmBtn.textContent = 'Move to Archive'; confirmBtn.className = 'confirm-btn archive-btn';
   confirmBtn.onclick = () => {
     const idx = tasks.findIndex(t => t.id === taskId);
     if (idx === -1) return;
-    
-    const task = tasks[idx];
-    archivedTasks.push(task);
-    tasks.splice(idx, 1);
-    
-    persistTasks();
-    persistArchive();
-    closeConfirmModal();
+    archivedTasks.push(tasks[idx]); tasks.splice(idx, 1);
+    persistTasks(); persistArchive(); closeConfirmModal();
   };
-  
   document.getElementById('confirmOverlay').classList.add('open');
 }
 
 function closeConfirmModal() {
   document.getElementById('confirmOverlay').classList.remove('open');
-  // Reset cancel button visibility
   document.getElementById('confirmCancelBtn').style.display = 'flex';
 }
 
-function handleConfirmOverlayClick(e) {
-  if (e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
-}
+function handleConfirmOverlayClick(e) { if (e.target === document.getElementById('confirmOverlay')) closeConfirmModal(); }
 
 
 // ══════════════════════════════════════════
@@ -1353,7 +796,6 @@ function handleConfirmOverlayClick(e) {
 function openModal(id) {
   editId = id || null;
   document.getElementById('modalTitle').textContent = editId ? 'Edit Task' : 'Add Task';
-
   if (editId) {
     const task = tasks.find(t => t.id === editId);
     document.getElementById('fName').value       = task.name;
@@ -1365,35 +807,21 @@ function openModal(id) {
     document.getElementById('fStatus').value     = task.status;
     document.getElementById('fNotes').value      = task.notes       || '';
   } else {
-    ['fName', 'fDate', 'fTime', 'fTargetDate', 'fTargetTime', 'fNotes'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
+    ['fName','fDate','fTime','fTargetDate','fTargetTime','fNotes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fCat').value    = 'quiz';
     document.getElementById('fStatus').value = 'todo';
   }
-
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(() => document.getElementById('fName').focus(), 120);
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  editId = null;
-}
-
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editId = null; }
+function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
 
 function saveTask() {
   const nameInput = document.getElementById('fName');
   const name = nameInput.value.trim();
-
-  if (!name) {
-    nameInput.style.borderColor = 'var(--red)';
-    nameInput.focus();
-    return;
-  }
+  if (!name) { nameInput.style.borderColor = 'var(--red)'; nameInput.focus(); return; }
   nameInput.style.borderColor = '';
 
   const data = {
@@ -1411,20 +839,14 @@ function saveTask() {
     const idx = tasks.findIndex(t => t.id === editId);
     tasks[idx] = { ...tasks[idx], ...data };
   } else {
-    tasks.push({
-      id:      Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      created: Date.now(),
-      ...data,
-    });
+    tasks.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), created: Date.now(), ...data });
   }
-
-  closeModal();
-  persistTasks();
+  closeModal(); persistTasks();
 }
 
 
 // ══════════════════════════════════════════
-// UTILITY HELPERS
+// UTILITY
 // ══════════════════════════════════════════
 
 function isOverdue(task) {
@@ -1434,33 +856,21 @@ function isOverdue(task) {
 
 function formatDue(date, time) {
   if (!date) return null;
-  const label = new Date(date + 'T00:00').toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  });
+  const label = new Date(date + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   if (!time) return label;
   const [h, m] = time.split(':');
-  const hr   = +h;
-  const ampm = hr >= 12 ? 'PM' : 'AM';
+  const hr = +h; const ampm = hr >= 12 ? 'PM' : 'AM';
   return label + ' at ' + ((hr % 12) || 12) + ':' + m + ' ' + ampm;
 }
 
-function formatShort(date) {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
+function formatShort(date) { return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
 
 function esc(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function setDateLabel() {
-  const dateText = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  });
-  document.getElementById('dateLabelInline').textContent = dateText;
+  document.getElementById('dateLabelInline').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 
@@ -1469,7 +879,7 @@ function setDateLabel() {
 // ══════════════════════════════════════════
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape')                         closeModal();
+  if (e.key === 'Escape') closeModal();
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveTask();
 });
 
@@ -1480,21 +890,10 @@ document.addEventListener('keydown', e => {
 
 setDateLabel();
 loadTasks();
-
-// Request notification permission on first load
 requestNotificationPermission();
-
-// Check for notifications immediately
 checkAndNotify();
-
-// Check for notifications every 1 hour (to catch 4hr and 8hr intervals)
 setInterval(checkAndNotify, 60 * 60 * 1000);
 
-// Auto-fullscreen on mobile devices
 if (isMobileDevice()) {
-  setTimeout(() => {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.log('Auto-fullscreen failed:', err);
-    });
-  }, 500);
+  setTimeout(() => { document.documentElement.requestFullscreen().catch(() => {}); }, 500);
 }
