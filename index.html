@@ -187,6 +187,7 @@
       <div class="filters" id="filtersSection">
         <input class="search-input" type="text" id="searchInput" placeholder="Search tasks..." oninput="renderTasks()" />
         <div class="form-group">
+  <label class="form-label">Category</label>
   <select class="form-control" id="fCat">
     <option value="quiz">Quiz</option>
     <option value="project">Project</option>
@@ -198,14 +199,7 @@
     <option value="learning">Learning Task</option>
     <option value="other">Other</option>
   </select>
-        </select>
-        <select class="filter-select" id="filterStatus" onchange="renderTasks()">
-          <option value="">All Status</option>
-          <option value="todo">To Do</option>
-          <option value="inprog">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-      </div>
+</div>
     </div>
 
     <div class="task-list" id="taskList"></div>
