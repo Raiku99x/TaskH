@@ -265,7 +265,7 @@ body.dark-mode .btn-add:hover {
 
 .period-toggle {
   background: none;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 6px;
   padding: 8px 16px;
   font-family: 'DM Sans', sans-serif;
@@ -280,8 +280,6 @@ body.dark-mode .btn-add:hover {
   gap: 8px;
 }
 .period-toggle:hover {
-  background: var(--surface2);
-  border-color: var(--accent);
   color: var(--accent);
 }
 .toggle-arrow {
@@ -392,8 +390,19 @@ body.dark-mode .btn-add:hover {
   position: relative;
   min-width: 150px;
   flex: 1;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 .stat-card.hidden { display: none; }
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+.stat-card.active-filter {
+  border: 2px solid var(--accent);
+  background: var(--accent-lt);
+}
 
 .hide-card-btn {
   position: absolute;
@@ -411,11 +420,15 @@ body.dark-mode .btn-add:hover {
   color: var(--text-sub);
   opacity: 0;
   transition: opacity 0.15s, background 0.12s;
+  z-index: 10;
 }
 .stat-card:hover .hide-card-btn { opacity: 1; }
 .hide-card-btn:hover {
   background: var(--surface2);
   color: var(--text);
+}
+.hide-card-btn:active {
+  transform: scale(0.9);
 }
 
 .stat-label {
