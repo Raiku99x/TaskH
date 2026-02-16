@@ -104,8 +104,8 @@
 
     <div class="summary-grid" id="summaryGrid">
 
-      <div class="stat-card total" id="card-total">
-        <button class="hide-card-btn" onclick="hideCard('total')" title="Hide this card">
+      <div class="stat-card total" id="card-total" onclick="setStatFilter('total')" title="Click to show all tasks">
+        <button class="hide-card-btn" onclick="hideCard('total', event)" title="Hide this card">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
         <div class="stat-label">Total Tasks</div>
@@ -113,8 +113,8 @@
         <div class="stat-sub">all categories</div>
       </div>
 
-      <div class="stat-card todo" id="card-todo">
-        <button class="hide-card-btn" onclick="hideCard('todo')" title="Hide this card">
+      <div class="stat-card todo" id="card-todo" onclick="setStatFilter('todo')" title="Click to show To Do tasks">
+        <button class="hide-card-btn" onclick="hideCard('todo', event)" title="Hide this card">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
         <div class="stat-label">To Do</div>
@@ -122,8 +122,8 @@
         <div class="stat-sub">not started</div>
       </div>
 
-      <div class="stat-card inprog" id="card-inprog">
-        <button class="hide-card-btn" onclick="hideCard('inprog')" title="Hide this card">
+      <div class="stat-card inprog" id="card-inprog" onclick="setStatFilter('inprog')" title="Click to show In Progress tasks">
+        <button class="hide-card-btn" onclick="hideCard('inprog', event)" title="Hide this card">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
         <div class="stat-label">In Progress</div>
@@ -131,8 +131,8 @@
         <div class="stat-sub">ongoing</div>
       </div>
 
-      <div class="stat-card done" id="card-done">
-        <button class="hide-card-btn" onclick="hideCard('done')" title="Hide this card">
+      <div class="stat-card done" id="card-done" onclick="setStatFilter('done')" title="Click to show Done tasks">
+        <button class="hide-card-btn" onclick="hideCard('done', event)" title="Hide this card">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
         <div class="stat-label">Done</div>
@@ -140,8 +140,8 @@
         <div class="stat-sub">completed</div>
       </div>
 
-      <div class="stat-card" id="card-overdue">
-        <button class="hide-card-btn" onclick="hideCard('overdue')" title="Hide this card">
+      <div class="stat-card" id="card-overdue" onclick="setStatFilter('overdue')" title="Click to show Overdue tasks">
+        <button class="hide-card-btn" onclick="hideCard('overdue', event)" title="Hide this card">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
         <div class="stat-label">Overdue</div>
