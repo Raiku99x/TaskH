@@ -1,5 +1,7 @@
 /* ══════════════════════════════════════════
    TASK HUB — app.js (with Browser Notifications & Stat Card Filters + Progress Card)
+   
+   FIXED: updateProgressCircle now properly displays all segments
    ══════════════════════════════════════════ */
 
 // ── CONSTANTS & STATE ─────────────────────────────────────────
@@ -417,7 +419,7 @@ function updateStatCardVisuals() {
 
 
 // ══════════════════════════════════════════
-// PROGRESS CARD
+// PROGRESS CARD - FIXED TO SHOW ALL SEGMENTS
 // ══════════════════════════════════════════
 
 function updateProgressCard() {
@@ -474,6 +476,7 @@ function updateProgressCircle(donePercent, inprogPercent, todoPercent, overduePe
   const radius = 45;
   const centerX = 50;
   const centerY = 50;
+  const circumference = 2 * Math.PI * radius;
   
   // Clear existing paths
   svg.innerHTML = '';
@@ -488,41 +491,81 @@ function updateProgressCircle(donePercent, inprogPercent, todoPercent, overduePe
   bgCircle.setAttribute('stroke-width', '8');
   svg.appendChild(bgCircle);
   
-  // Calculate cumulative percentages for segments
-  let currentPercent = 0;
-  const segments = [
-    { percent: donePercent, color: 'var(--green)' },
-    { percent: inprogPercent, color: 'var(--amber)' },
-    { percent: todoPercent, color: 'var(--slate)' },
-    { percent: overduePercent, color: 'var(--red)' }
-  ];
+  // FIXED: Calculate actual percentages and draw segments
+  // Draw segments in order: done, inprog, todo, overdue
+  // Each segment starts where the previous one ended
   
-  segments.forEach(segment => {
-    if (segment.percent > 0) {
-      const startAngle = (currentPercent / 100) * 360 - 90;
-      const endAngle = ((currentPercent + segment.percent) / 100) * 360 - 90;
-      
-      const startRad = (startAngle * Math.PI) / 180;
-      const endRad = (endAngle * Math.PI) / 180;
-      
-      const x1 = centerX + radius * Math.cos(startRad);
-      const y1 = centerY + radius * Math.sin(startRad);
-      const x2 = centerX + radius * Math.cos(endRad);
-      const y2 = centerY + radius * Math.sin(endRad);
-      
-      const largeArc = segment.percent > 50 ? 1 : 0;
-      
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', segment.color);
-      path.setAttribute('stroke-width', '8');
-      path.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(path);
-      
-      currentPercent += segment.percent;
-    }
-  });
+  let currentPercent = 0;
+  
+  // Segment 1: Done (green)
+  if (donePercent > 0) {
+    const path = createSegmentPath(currentPercent, donePercent, radius, centerX, centerY);
+    path.setAttribute('stroke', 'var(--green)');
+    path.setAttribute('stroke-width', '8');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('fill', 'none');
+    svg.appendChild(path);
+    currentPercent += donePercent;
+  }
+  
+  // Segment 2: In Progress (amber)
+  if (inprogPercent > 0) {
+    const path = createSegmentPath(currentPercent, inprogPercent, radius, centerX, centerY);
+    path.setAttribute('stroke', 'var(--amber)');
+    path.setAttribute('stroke-width', '8');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('fill', 'none');
+    svg.appendChild(path);
+    currentPercent += inprogPercent;
+  }
+  
+  // Segment 3: To Do (slate)
+  if (todoPercent > 0) {
+    const path = createSegmentPath(currentPercent, todoPercent, radius, centerX, centerY);
+    path.setAttribute('stroke', 'var(--slate)');
+    path.setAttribute('stroke-width', '8');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('fill', 'none');
+    svg.appendChild(path);
+    currentPercent += todoPercent;
+  }
+  
+  // Segment 4: Overdue (red)
+  if (overduePercent > 0) {
+    const path = createSegmentPath(currentPercent, overduePercent, radius, centerX, centerY);
+    path.setAttribute('stroke', 'var(--red)');
+    path.setAttribute('stroke-width', '8');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('fill', 'none');
+    svg.appendChild(path);
+  }
+}
+
+// FIXED: Helper function to create an arc path for a segment
+function createSegmentPath(startPercent, segmentPercent, radius, centerX, centerY) {
+  // Convert percentages to angles (starting from top: -90 degrees)
+  const startAngle = (startPercent / 100) * 360 - 90;
+  const endAngle = ((startPercent + segmentPercent) / 100) * 360 - 90;
+  
+  // Convert to radians
+  const startRad = (startAngle * Math.PI) / 180;
+  const endRad = (endAngle * Math.PI) / 180;
+  
+  // Calculate start and end points
+  const x1 = centerX + radius * Math.cos(startRad);
+  const y1 = centerY + radius * Math.sin(startRad);
+  const x2 = centerX + radius * Math.cos(endRad);
+  const y2 = centerY + radius * Math.sin(endRad);
+  
+  // Determine if we need a large arc (for segments > 50%)
+  const largeArc = segmentPercent > 50 ? 1 : 0;
+  
+  // Create the arc path
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const pathData = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
+  path.setAttribute('d', pathData);
+  
+  return path;
 }
 
 
