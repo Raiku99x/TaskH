@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   TASK HUB — app.js (with Browser Notifications & Stat Card Filters)
+   TASK HUB — app.js (with Browser Notifications & Stat Card Filters + Progress Card)
    ══════════════════════════════════════════ */
 
 // ── CONSTANTS & STATE ─────────────────────────────────────────
@@ -15,7 +15,8 @@ let editId       = null;
 let activePeriod = 'twomonths';
 let hiddenCards  = new Set();
 let activeSortMode = 'due';  // due or do (default: due)
-let activeStatFilter = null; // null, 'total', 'todo', 'inprog', 'done', 'overdue'
+let activeStatFilter = null; // null, 'total', 'todo', 'inprog', 'done', 'overdue', 'progress'
+let progressCycleMode = 'done'; // done, todo, inprog, overdue
 let isFullscreen = false;
 let isDarkMode   = false;
 let notifiedTasks = {}; // Track which tasks we've already notified about with timestamps
@@ -373,11 +374,25 @@ function refreshPage() {
 // ══════════════════════════════════════════
 
 function setStatFilter(filter) {
-  // If clicking same filter, toggle it off
-  if (activeStatFilter === filter) {
-    activeStatFilter = null;
+  // Special handling for progress card - cycle through modes
+  if (filter === 'progress') {
+    if (activeStatFilter === 'progress') {
+      // Cycle to next mode
+      const modes = ['done', 'todo', 'inprog', 'overdue'];
+      const currentIndex = modes.indexOf(progressCycleMode);
+      progressCycleMode = modes[(currentIndex + 1) % modes.length];
+    } else {
+      // First click - activate with done mode
+      activeStatFilter = 'progress';
+      progressCycleMode = 'done';
+    }
   } else {
-    activeStatFilter = filter;
+    // If clicking same filter, toggle it off
+    if (activeStatFilter === filter) {
+      activeStatFilter = null;
+    } else {
+      activeStatFilter = filter;
+    }
   }
   
   // Update visual state of cards
@@ -388,11 +403,124 @@ function setStatFilter(filter) {
 }
 
 function updateStatCardVisuals() {
-  const cards = ['total', 'todo', 'inprog', 'done', 'overdue'];
+  const cards = ['total', 'todo', 'inprog', 'done', 'overdue', 'progress'];
   cards.forEach(id => {
     const card = document.getElementById('card-' + id);
     if (card) {
       card.classList.toggle('active-filter', activeStatFilter === id);
+    }
+  });
+  
+  // Update progress card display based on cycle mode
+  updateProgressCard();
+}
+
+
+// ══════════════════════════════════════════
+// PROGRESS CARD
+// ══════════════════════════════════════════
+
+function updateProgressCard() {
+  const periodTasks = tasks.filter(taskInPeriod);
+  const total = periodTasks.length;
+  
+  if (total === 0) {
+    document.getElementById('progressPercent').textContent = '0%';
+    document.getElementById('progressLabel').textContent = 'No Tasks';
+    updateProgressCircle(0, 0, 0, 0);
+    return;
+  }
+  
+  const doneCount = periodTasks.filter(t => t.status === 'done').length;
+  const todoCount = periodTasks.filter(t => t.status === 'todo').length;
+  const inprogCount = periodTasks.filter(t => t.status === 'inprog').length;
+  const overdueCount = periodTasks.filter(isOverdue).length;
+  
+  const donePercent = Math.round((doneCount / total) * 100);
+  const todoPercent = Math.round((todoCount / total) * 100);
+  const inprogPercent = Math.round((inprogCount / total) * 100);
+  const overduePercent = Math.round((overdueCount / total) * 100);
+  
+  // Update circle visualization
+  updateProgressCircle(donePercent, inprogPercent, todoPercent, overduePercent);
+  
+  // Update center text based on cycle mode
+  const percentEl = document.getElementById('progressPercent');
+  const labelEl = document.getElementById('progressLabel');
+  
+  if (progressCycleMode === 'done') {
+    percentEl.textContent = donePercent + '%';
+    percentEl.style.color = 'var(--green)';
+    labelEl.textContent = 'completed';
+  } else if (progressCycleMode === 'todo') {
+    percentEl.textContent = todoPercent + '%';
+    percentEl.style.color = 'var(--slate)';
+    labelEl.textContent = 'to do';
+  } else if (progressCycleMode === 'inprog') {
+    percentEl.textContent = inprogPercent + '%';
+    percentEl.style.color = 'var(--amber)';
+    labelEl.textContent = 'in progress';
+  } else if (progressCycleMode === 'overdue') {
+    percentEl.textContent = overduePercent + '%';
+    percentEl.style.color = 'var(--red)';
+    labelEl.textContent = 'overdue';
+  }
+}
+
+function updateProgressCircle(donePercent, inprogPercent, todoPercent, overduePercent) {
+  const svg = document.getElementById('progressCircle');
+  if (!svg) return;
+  
+  const radius = 45;
+  const centerX = 50;
+  const centerY = 50;
+  
+  // Clear existing paths
+  svg.innerHTML = '';
+  
+  // Create background circle (light gray)
+  const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  bgCircle.setAttribute('cx', centerX);
+  bgCircle.setAttribute('cy', centerY);
+  bgCircle.setAttribute('r', radius);
+  bgCircle.setAttribute('fill', 'none');
+  bgCircle.setAttribute('stroke', 'var(--surface2)');
+  bgCircle.setAttribute('stroke-width', '8');
+  svg.appendChild(bgCircle);
+  
+  // Calculate cumulative percentages for segments
+  let currentPercent = 0;
+  const segments = [
+    { percent: donePercent, color: 'var(--green)' },
+    { percent: inprogPercent, color: 'var(--amber)' },
+    { percent: todoPercent, color: 'var(--slate)' },
+    { percent: overduePercent, color: 'var(--red)' }
+  ];
+  
+  segments.forEach(segment => {
+    if (segment.percent > 0) {
+      const startAngle = (currentPercent / 100) * 360 - 90;
+      const endAngle = ((currentPercent + segment.percent) / 100) * 360 - 90;
+      
+      const startRad = (startAngle * Math.PI) / 180;
+      const endRad = (endAngle * Math.PI) / 180;
+      
+      const x1 = centerX + radius * Math.cos(startRad);
+      const y1 = centerY + radius * Math.sin(startRad);
+      const x2 = centerX + radius * Math.cos(endRad);
+      const y2 = centerY + radius * Math.sin(endRad);
+      
+      const largeArc = segment.percent > 50 ? 1 : 0;
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', segment.color);
+      path.setAttribute('stroke-width', '8');
+      path.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(path);
+      
+      currentPercent += segment.percent;
     }
   });
 }
@@ -762,7 +890,7 @@ function restoreAllCards() {
 }
 
 function applyHiddenCards() {
-  const ids = ['total', 'todo', 'inprog', 'done', 'overdue'];
+  const ids = ['total', 'todo', 'inprog', 'done', 'overdue', 'progress'];
 
   ids.forEach(id => {
     const el = document.getElementById('card-' + id);
@@ -847,6 +975,7 @@ function renderStats(periodTasks) {
   document.getElementById('statInprog').textContent  = periodTasks.filter(t => t.status === 'inprog').length;
   document.getElementById('statDone').textContent    = periodTasks.filter(t => t.status === 'done').length;
   document.getElementById('statOverdue').textContent = periodTasks.filter(isOverdue).length;
+  updateProgressCard(); // UPDATE PROGRESS CARD
 }
 
 function renderTasks() {
@@ -876,6 +1005,16 @@ function renderTasks() {
       list = list.filter(t => t.status === 'done');
     } else if (activeStatFilter === 'overdue') {
       list = list.filter(isOverdue);
+    } else if (activeStatFilter === 'progress') {
+      if (progressCycleMode === 'done') {
+        list = list.filter(t => t.status === 'done');
+      } else if (progressCycleMode === 'todo') {
+        list = list.filter(t => t.status === 'todo');
+      } else if (progressCycleMode === 'inprog') {
+        list = list.filter(t => t.status === 'inprog');
+      } else if (progressCycleMode === 'overdue') {
+        list = list.filter(isOverdue);
+      }
     }
   }
 
