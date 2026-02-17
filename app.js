@@ -523,18 +523,24 @@ function buildTaskCardHTML(task) {
   const dueTxt  = formatDue(task.date, task.time);
   const stLabel = { todo: 'To Do', inprog: 'In Progress', done: 'Done' }[task.status];
   const doTxt   = formatDue(task.targetDate, task.targetTime);
-  const showDo  = doTxt && doTxt !== dueTxt;
+
+  // If due date and do date fall on the same calendar day, hide the Due row
+  // and show only the Do row. Sorting is unaffected (still uses task.date).
+  const sameDayAsDue = task.date && task.targetDate && task.date === task.targetDate;
+  const showDo  = !!doTxt && !sameDayAsDue;   // normal: show Do only when dates differ
+  const hideDue = sameDayAsDue;                // collapse Due when same day
+
   const doOverdue = task.targetDate && task.status !== 'done'
     ? new Date(task.targetDate+'T'+(task.targetTime||'23:59')) < new Date() : false;
 
-  const dueMeta = dueTxt ? `
+  const dueMeta = (dueTxt && !hideDue) ? `
     <span class="meta-item" style="${over ? 'color:var(--red)' : ''}">
       ${over ? '<span class="overdue-dot"></span>' : ''}
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Due: ${esc(dueTxt)}${over ? ' — Overdue' : ''}
     </span>` : '';
 
-  const doMeta = showDo ? `
+  const doMeta = (showDo || sameDayAsDue) ? `
     <span class="meta-item" style="${doOverdue ? 'color:var(--red)' : ''}">
       ${doOverdue ? '<span class="overdue-dot"></span>' : ''}
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
