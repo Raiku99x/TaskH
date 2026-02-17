@@ -102,6 +102,160 @@ function updateCatDisplay(val) {
 
 
 // ══════════════════════════════════════════
+// SUBJECT SUGGESTIONS
+// ══════════════════════════════════════════
+
+const SUBJECT_SUGGESTIONS = [
+  'Ethics', 'Contemporary', 'Pathfit', 'Discrete',
+  'Calculus 4 ComSci', 'Mathematics in MW', 'Intermediate Prog.', 'ROTC'
+];
+
+
+// ══════════════════════════════════════════
+// FILTER CUSTOM DROPDOWNS (Category + Status)
+// ══════════════════════════════════════════
+
+const STATUS_OPTIONS = [
+  { value: '',       label: 'All Status',   color: '#5a6474' },
+  { value: 'todo',   label: 'To Do',        color: 'var(--slate)' },
+  { value: 'inprog', label: 'In Progress',  color: 'var(--amber)' },
+  { value: 'done',   label: 'Done',         color: 'var(--green)' },
+];
+
+const CAT_FILTER_OPTIONS = [
+  { value: '', label: 'All Categories', color: '#5a6474' },
+  ...Object.entries(CAT_LABELS).map(([v, l]) => ({ value: v, label: l, color: CAT_COLORS[v] }))
+];
+
+function buildFilterDropdowns() {
+  // Category filter options
+  const catOpts = document.getElementById('filterCatOptions');
+  if (catOpts) {
+    catOpts.innerHTML = CAT_FILTER_OPTIONS.map(o => `
+      <div class="filter-option" data-value="${o.value}" onclick="selectFilterCat('${o.value}')">
+        <span class="cat-dot-option" style="background:${o.color}"></span>
+        ${o.label}
+      </div>`).join('');
+  }
+  // Status filter options
+  const stOpts = document.getElementById('filterStatusOptions');
+  if (stOpts) {
+    stOpts.innerHTML = STATUS_OPTIONS.map(o => `
+      <div class="filter-option" data-value="${o.value}" onclick="selectFilterStatus('${o.value}')">
+        <span class="cat-dot-option" style="background:${o.color}"></span>
+        ${o.label}
+      </div>`).join('');
+  }
+}
+
+function toggleFilterDropdown(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.classList.toggle('open');
+  // close the other one
+  ['filterCatSelect','filterStatusSelect'].forEach(other => {
+    if (other !== id) document.getElementById(other)?.classList.remove('open');
+  });
+  if (isOpen) {
+    setTimeout(() => document.addEventListener('click', function closeFilter(e) {
+      if (!el.contains(e.target)) { el.classList.remove('open'); }
+      else { document.addEventListener('click', closeFilter, { once: true }); }
+    }, { once: true }), 0);
+  }
+}
+
+function selectFilterCat(val) {
+  document.getElementById('filterCat').value = val;
+  const opt = CAT_FILTER_OPTIONS.find(o => o.value === val) || CAT_FILTER_OPTIONS[0];
+  document.getElementById('filterCatDot').style.background = opt.color;
+  document.getElementById('filterCatLabel').textContent = opt.label;
+  document.getElementById('filterCatSelect').classList.remove('open');
+  // mark active
+  document.querySelectorAll('#filterCatOptions .filter-option').forEach(el =>
+    el.classList.toggle('active', el.dataset.value === val));
+  renderTasks();
+}
+
+function selectFilterStatus(val) {
+  document.getElementById('filterStatus').value = val;
+  const opt = STATUS_OPTIONS.find(o => o.value === val) || STATUS_OPTIONS[0];
+  document.getElementById('filterStatusDot').style.background = opt.color;
+  document.getElementById('filterStatusLabel').textContent = opt.label;
+  document.getElementById('filterStatusSelect').classList.remove('open');
+  document.querySelectorAll('#filterStatusOptions .filter-option').forEach(el =>
+    el.classList.toggle('active', el.dataset.value === val));
+  renderTasks();
+}
+
+
+// ══════════════════════════════════════════
+// SEARCH SUGGESTIONS
+// ══════════════════════════════════════════
+
+function handleSearchInput(val) {
+  renderTasks();
+  const box = document.getElementById('searchSuggestions');
+  if (!box) return;
+  const q = val.trim().toLowerCase();
+  if (!q) { box.innerHTML = ''; box.classList.remove('open'); return; }
+  const matches = tasks
+    .filter(t => t.name.toLowerCase().includes(q))
+    .map(t => t.name)
+    .filter((n, i, arr) => arr.indexOf(n) === i)
+    .slice(0, 6);
+  if (!matches.length) { box.innerHTML = ''; box.classList.remove('open'); return; }
+  box.innerHTML = matches.map(name =>
+    `<div class="suggestion-item" onmousedown="pickSearchSuggestion('${esc(name)}')">${esc(name)}</div>`
+  ).join('');
+  box.classList.add('open');
+}
+
+function pickSearchSuggestion(name) {
+  document.getElementById('searchInput').value = name;
+  closeSearchSuggestions();
+  renderTasks();
+}
+
+function closeSearchSuggestions() {
+  const box = document.getElementById('searchSuggestions');
+  if (box) { box.innerHTML = ''; box.classList.remove('open'); }
+}
+
+
+// ══════════════════════════════════════════
+// TASK NAME AUTOCOMPLETE
+// ══════════════════════════════════════════
+
+function handleTaskNameInput(val) {
+  const box = document.getElementById('taskNameSuggestions');
+  if (!box) return;
+  const q = val.trim().toLowerCase();
+  if (!q) { box.innerHTML = ''; box.classList.remove('open'); return; }
+
+  // combine subject list + existing task names
+  const existingNames = tasks.map(t => t.name);
+  const allSuggestions = [...new Set([...SUBJECT_SUGGESTIONS, ...existingNames])];
+  const matches = allSuggestions.filter(s => s.toLowerCase().includes(q)).slice(0, 7);
+
+  if (!matches.length) { box.innerHTML = ''; box.classList.remove('open'); return; }
+  box.innerHTML = matches.map(s =>
+    `<div class="suggestion-item" onmousedown="pickTaskNameSuggestion('${esc(s)}')">${esc(s)}</div>`
+  ).join('');
+  box.classList.add('open');
+}
+
+function pickTaskNameSuggestion(name) {
+  document.getElementById('fName').value = name;
+  closeTaskSuggestions();
+}
+
+function closeTaskSuggestions() {
+  const box = document.getElementById('taskNameSuggestions');
+  if (box) { box.innerHTML = ''; box.classList.remove('open'); }
+}
+
+
+// ══════════════════════════════════════════
 // NOTIFICATION SYSTEM
 // ══════════════════════════════════════════
 
@@ -835,6 +989,7 @@ document.addEventListener('keydown', e => {
 
 setDateLabel();
 buildCatDropdown();
+buildFilterDropdowns();
 loadTasks();
 requestNotificationPermission();
 checkAndNotify();
