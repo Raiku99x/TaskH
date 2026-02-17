@@ -457,7 +457,7 @@ body.dark-mode .sort-btn.active { background: #2b5ce6; border-color: #2b5ce6; co
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
-  display: flex;           /* always visible */
+  display: flex;
   align-items: center;
   gap: 6px;
   transition: all 0.15s;
@@ -467,7 +467,7 @@ body.dark-mode .sort-btn.active { background: #2b5ce6; border-color: #2b5ce6; co
 
 /* ── Filters Dropdown — hidden until toggled ── */
 .filters {
-  display: none;           /* hidden by default on ALL screen sizes */
+  display: none;
   flex-direction: row;
   gap: 8px;
   flex-wrap: wrap;
@@ -583,6 +583,8 @@ body.dark-mode .sort-btn.active { background: #2b5ce6; border-color: #2b5ce6; co
 .cat-quiz       { background: #ede9fe; color: #6d28d9; }
 .cat-project    { background: #dbeafe; color: #1d4ed8; }
 .cat-assignment { background: #fce7f3; color: #be185d; }
+.cat-exam       { background: #fee2e2; color: #b91c1c; }
+.cat-study      { background: #ecfdf5; color: #065f46; }
 .cat-review     { background: #d1fae5; color: #065f46; }
 .cat-output     { background: #fef9c3; color: #854d0e; }
 .cat-online     { background: #e0f2fe; color: #0369a1; }
@@ -917,6 +919,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .hide-card-btn { width: 20px; height: 20px; top: 6px; right: 6px; }
   .hide-card-btn svg { width: 11px; height: 11px; }
 
+  /* Disable hover lift/border effects on stat cards — doesn't make sense on touch */
+  .stat-card:hover { transform: none; box-shadow: var(--shadow); border-color: var(--border); }
+  .stat-card.active-filter:hover { border-color: var(--accent); }
+
   /* Progress card mobile */
   .progress-card {
     min-width: 0 !important;
@@ -944,6 +950,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .status-col { grid-row: 1 / 3; }
   .task-body { grid-column: 2; grid-row: 1; }
   .task-actions { grid-column: 2; grid-row: 2; margin-top: 10px; justify-content: flex-start; gap: 6px; }
+
+  /* Disable hover lift/shadow on task cards — doesn't make sense on touch */
+  .task-card:hover { box-shadow: var(--shadow); transform: none; }
 
   /* Mobile task actions */
   .task-actions .qs-btn { display: none; }
