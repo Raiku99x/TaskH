@@ -35,6 +35,72 @@ const CAT_LABELS = {
 };
 
 
+const CAT_COLORS = {
+  quiz:       '#6d28d9',
+  project:    '#1d4ed8',
+  assignment: '#be185d',
+  exam:       '#b91c1c',
+  study:      '#065f46',
+  review:     '#059669',
+  output:     '#854d0e',
+  online:     '#0369a1',
+  facetoface: '#9a3412',
+  learning:   '#7e22ce',
+  other:      '#5a6474',
+};
+
+
+// ══════════════════════════════════════════
+// CUSTOM CATEGORY DROPDOWN
+// ══════════════════════════════════════════
+
+function buildCatDropdown() {
+  const options = document.getElementById('catOptions');
+  if (!options) return;
+  options.innerHTML = Object.entries(CAT_LABELS).map(([val, label]) => `
+    <div class="cat-option" data-value="${val}" onclick="selectCategory('${val}')">
+      <span class="cat-dot-option" style="background:${CAT_COLORS[val] || '#5a6474'}"></span>
+      ${label}
+    </div>
+  `).join('');
+}
+
+function toggleCatDropdown() {
+  const wrapper = document.getElementById('catCustomSelect');
+  if (!wrapper) return;
+  const isOpen = wrapper.classList.toggle('open');
+  if (isOpen) {
+    setTimeout(() => document.addEventListener('click', closeCatOnOutside), 0);
+  }
+}
+
+function closeCatOnOutside(e) {
+  const wrapper = document.getElementById('catCustomSelect');
+  if (!wrapper) return;
+  if (!wrapper.contains(e.target)) {
+    wrapper.classList.remove('open');
+  } else {
+    document.addEventListener('click', closeCatOnOutside, { once: true });
+  }
+}
+
+function selectCategory(val) {
+  document.getElementById('fCat').value = val;
+  updateCatDisplay(val);
+  document.getElementById('catCustomSelect').classList.remove('open');
+}
+
+function updateCatDisplay(val) {
+  const dot   = document.getElementById('catSelectedDot');
+  const label = document.getElementById('catSelectedLabel');
+  if (dot)   dot.style.background = CAT_COLORS[val] || '#5a6474';
+  if (label) label.textContent    = CAT_LABELS[val] || val;
+  document.querySelectorAll('.cat-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.value === val);
+  });
+}
+
+
 // ══════════════════════════════════════════
 // NOTIFICATION SYSTEM
 // ══════════════════════════════════════════
@@ -704,6 +770,7 @@ function openModal(id) {
     document.getElementById('fStatus').value = 'todo';
   }
   document.getElementById('modalOverlay').classList.add('open');
+  updateCatDisplay(document.getElementById('fCat').value);
   setTimeout(() => document.getElementById('fName').focus(), 120);
 }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editId = null; }
@@ -748,7 +815,7 @@ function formatDue(date, time) {
 function formatShort(date) { return date.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 function esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function setDateLabel() {
-  document.getElementById('dateLabelInline').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('dateLabelInline').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 
 
@@ -767,6 +834,7 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════
 
 setDateLabel();
+buildCatDropdown();
 loadTasks();
 requestNotificationPermission();
 checkAndNotify();
