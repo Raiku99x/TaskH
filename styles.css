@@ -897,6 +897,103 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 
 /* ════════════════════════════════
+   SEARCH SUGGESTIONS & TASK NAME AUTOCOMPLETE
+   ════════════════════════════════ */
+.search-wrapper,
+.task-name-wrapper {
+  position: relative;
+}
+
+.search-suggestions {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  z-index: 400;
+  overflow: hidden;
+}
+.search-suggestions.open { display: block; }
+
+.suggestion-item {
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.suggestion-item:hover { background: var(--surface2); }
+.suggestion-item:last-child { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+/* ════════════════════════════════
+   FILTER CUSTOM DROPDOWNS
+   ════════════════════════════════ */
+.filter-custom-select {
+  position: relative;
+  min-width: 150px;
+}
+
+.filter-selected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.filter-selected:hover { border-color: var(--accent); color: var(--accent); }
+.filter-custom-select.open .filter-selected {
+  border-color: var(--accent);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: var(--surface);
+}
+.filter-custom-select.open .cat-chevron { transform: rotate(180deg); }
+
+.filter-options {
+  display: none;
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  z-index: 350;
+  max-height: 230px;
+  overflow-y: auto;
+}
+.filter-custom-select.open .filter-options { display: block; }
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.filter-option:hover { background: var(--surface2); }
+.filter-option.active { background: var(--accent-lt); font-weight: 600; }
+.filter-option:last-child { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+
+/* ════════════════════════════════
    CUSTOM CATEGORY DROPDOWN
    ════════════════════════════════ */
 .cat-select-wrapper { position: relative; }
@@ -1014,6 +1111,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .filters { flex-direction: column; align-items: stretch; }
   .search-input { width: 100%; }
   .filter-select { width: 100%; }
+  .filter-custom-select { width: 100%; }
+  .search-wrapper { width: 100%; }
 
   .form-row { grid-template-columns: 1fr 1fr; }
 
