@@ -24,6 +24,8 @@ const CAT_LABELS = {
   quiz:       'Quiz',
   project:    'Project',
   assignment: 'Assignment',
+  exam:       'Exam',
+  study:      'Study',
   review:     'Review',
   output:     'Output',
   online:     'Online Class',
@@ -575,31 +577,16 @@ function buildTaskCardHTML(task) {
 // TASK ACTIONS
 // ══════════════════════════════════════════
 
-/*
- * applyDoneStateInstantly — visually flips the card to "done"
- * BEFORE the animation runs, so the user sees:
- *   1. Strikethrough name + green dot + Done button active  (instant)
- *   2. Checkmark + confetti animation plays on top           (600ms)
- *   3. Full re-render / persist                              (after anim)
- */
 function applyDoneStateInstantly(taskId) {
   const card = document.querySelector(`[data-task-id="${taskId}"]`);
   if (!card) return;
-
-  // Add done-card class → strikethrough + dimming via CSS
   card.classList.add('done-card');
-
-  // Flip status dot → green filled
   const dot = card.querySelector('.status-dot');
   if (dot) { dot.classList.remove('todo','inprog'); dot.classList.add('done'); }
-
-  // Flip quick-status buttons → Done active
   card.querySelectorAll('.qs-btn').forEach(btn => {
     btn.classList.remove('active');
     if (btn.classList.contains('qs-done')) btn.classList.add('active');
   });
-
-  // Flip mobile cycle button → Done
   const mobileBtn = card.querySelector('.qs-btn-mobile');
   if (mobileBtn) {
     mobileBtn.classList.remove('qs-todo','qs-inprog','qs-done');
@@ -612,7 +599,7 @@ function setStatus(id, status) {
   const task = tasks.find(t => t.id === id);
   if (!task) return;
   if (status === 'done' && task.status !== 'done') {
-    applyDoneStateInstantly(id);                       // ← instant visual flip
+    applyDoneStateInstantly(id);
     playCompletionAnimation(id, () => {
       task.status = status; persistTasks();
     });
@@ -626,7 +613,7 @@ function cycleStatus(id) {
   if (!task) return;
   const newStatus = { todo:'inprog', inprog:'done', done:'todo' }[task.status];
   if (newStatus === 'done' && task.status !== 'done') {
-    applyDoneStateInstantly(id);                       // ← instant visual flip
+    applyDoneStateInstantly(id);
     playCompletionAnimation(id, () => {
       task.status = newStatus; persistTasks();
     });
