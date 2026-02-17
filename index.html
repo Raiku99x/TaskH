@@ -229,7 +229,8 @@
 
       <div class="form-group">
         <label class="form-label">Category</label>
-        <select class="form-control" id="fCat">
+        <!-- hidden native select keeps value for saveTask() -->
+        <select class="form-control" id="fCat" style="display:none;">
           <option value="quiz">Quiz</option>
           <option value="project">Project</option>
           <option value="assignment">Assignment</option>
@@ -242,6 +243,17 @@
           <option value="learning">Learning Task</option>
           <option value="other">Other</option>
         </select>
+        <!-- custom styled dropdown -->
+        <div class="cat-select-wrapper">
+          <div class="cat-custom-select" id="catCustomSelect">
+            <div class="cat-selected" onclick="toggleCatDropdown()">
+              <span class="cat-dot-option" id="catSelectedDot" style="background:#6d28d9"></span>
+              <span id="catSelectedLabel">Quiz</span>
+              <svg class="cat-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="cat-options" id="catOptions"></div>
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
