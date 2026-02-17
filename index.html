@@ -110,7 +110,6 @@
         </button>
         <div class="stat-label">Total Tasks</div>
         <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-sub">all categories</div>
       </div>
 
       <div class="stat-card todo" id="card-todo" onclick="setStatFilter('todo')" title="Click to show To Do tasks">
@@ -119,7 +118,6 @@
         </button>
         <div class="stat-label">To Do</div>
         <div class="stat-value" id="statTodo">0</div>
-        <div class="stat-sub">not started</div>
       </div>
 
       <div class="stat-card inprog" id="card-inprog" onclick="setStatFilter('inprog')" title="Click to show In Progress tasks">
@@ -128,7 +126,6 @@
         </button>
         <div class="stat-label">In Progress</div>
         <div class="stat-value" id="statInprog">0</div>
-        <div class="stat-sub">ongoing</div>
       </div>
 
       <div class="stat-card done" id="card-done" onclick="setStatFilter('done')" title="Click to show Done tasks">
@@ -137,7 +134,6 @@
         </button>
         <div class="stat-label">Done</div>
         <div class="stat-value" id="statDone">0</div>
-        <div class="stat-sub">completed</div>
       </div>
 
       <div class="stat-card" id="card-overdue" onclick="setStatFilter('overdue')" title="Click to show Overdue tasks">
@@ -146,7 +142,6 @@
         </button>
         <div class="stat-label">Overdue</div>
         <div class="stat-value" id="statOverdue" style="color:var(--red)">0</div>
-        <div class="stat-sub">past due date</div>
       </div>
 
       <div class="stat-card progress-card" id="card-progress" title="Progress overview">
@@ -184,8 +179,26 @@
 
       <!-- Filters Dropdown -->
       <div class="filters" id="filtersSection">
-        <input class="search-input" type="text" id="searchInput" placeholder="Search tasks…" oninput="renderTasks()" />
-        <select class="filter-select" id="filterCat" onchange="renderTasks()">
+
+        <!-- Search with autocomplete -->
+        <div class="search-wrapper">
+          <input class="search-input" type="text" id="searchInput" placeholder="Search tasks…"
+            oninput="handleSearchInput(this.value)"
+            onblur="setTimeout(closeSearchSuggestions, 150)"
+            onfocus="handleSearchInput(this.value)" />
+          <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
+
+        <!-- Custom Category filter -->
+        <div class="filter-custom-select" id="filterCatSelect">
+          <div class="filter-selected" onclick="toggleFilterDropdown('filterCatSelect')">
+            <span class="cat-dot-option" id="filterCatDot" style="background:#5a6474"></span>
+            <span id="filterCatLabel">All Categories</span>
+            <svg class="cat-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="filter-options" id="filterCatOptions"></div>
+        </div>
+        <select id="filterCat" style="display:none;" onchange="renderTasks()">
           <option value="">All Categories</option>
           <option value="quiz">Quiz</option>
           <option value="project">Project</option>
@@ -199,12 +212,23 @@
           <option value="learning">Learning Task</option>
           <option value="other">Other</option>
         </select>
-        <select class="filter-select" id="filterStatus" onchange="renderTasks()">
+
+        <!-- Custom Status filter -->
+        <div class="filter-custom-select" id="filterStatusSelect">
+          <div class="filter-selected" onclick="toggleFilterDropdown('filterStatusSelect')">
+            <span class="cat-dot-option" id="filterStatusDot" style="background:#5a6474"></span>
+            <span id="filterStatusLabel">All Status</span>
+            <svg class="cat-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="filter-options" id="filterStatusOptions"></div>
+        </div>
+        <select id="filterStatus" style="display:none;" onchange="renderTasks()">
           <option value="">All Status</option>
           <option value="todo">To Do</option>
           <option value="inprog">In Progress</option>
           <option value="done">Done</option>
         </select>
+
       </div>
     </div>
 
@@ -224,7 +248,13 @@
 
       <div class="form-group">
         <label class="form-label">Task Name *</label>
-        <input class="form-control" id="fName" type="text" placeholder="e.g. Submit Chemistry quiz" />
+        <div class="task-name-wrapper">
+          <input class="form-control" id="fName" type="text" placeholder="e.g. Submit Chemistry quiz"
+            oninput="handleTaskNameInput(this.value)"
+            onblur="setTimeout(closeTaskSuggestions, 150)"
+            onfocus="handleTaskNameInput(this.value)" />
+          <div class="search-suggestions" id="taskNameSuggestions"></div>
+        </div>
       </div>
 
       <div class="form-group">
